@@ -467,6 +467,19 @@ def api_service_logs(request, service_id):
 
 
 @login_required
+def api_container_logs(request, container_id):
+    """API endpoint for container logs"""
+    docker_manager = DockerSwarmManager()
+    
+    lines = int(request.GET.get('lines', 100))
+    since = request.GET.get('since', '')
+    
+    logs_data = docker_manager.get_container_logs(container_id, lines=lines, since=since or None)
+    
+    return JsonResponse(logs_data)
+
+
+@login_required
 def service_groups_view(request):
     """Manage service groups"""
     from .models import ServiceGroup

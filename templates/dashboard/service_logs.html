@@ -233,21 +233,33 @@
         content.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></div>';
         modal.show();
         
-        // Fetch container logs (you would implement this API endpoint)
+        // Fetch container logs
         fetch(`/api/containers/${containerId}/logs/`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.logs && data.logs.length > 0) {
-                    content.innerHTML = data.logs.map(line => `<div class="log-line">${line}</div>`).join('');
+                    content.innerHTML = data.logs.map(line => `<div class="log-line">${escapeHtml(line)}</div>`).join('');
                 } else if (data.error) {
-                    content.innerHTML = `<div class="text-danger">Error: ${data.error}</div>`;
+                    content.innerHTML = `<div class="text-danger">Error: ${escapeHtml(data.error)}</div>`;
                 } else {
                     content.innerHTML = '<div class="text-muted">No logs available</div>';
                 }
             })
             .catch(error => {
-                content.innerHTML = `<div class="text-danger">Error loading logs: ${error.message}</div>`;
+                console.error('Container logs error:', error);
+                content.innerHTML = `<div class="text-danger">Error loading logs: ${escapeHtml(error.message)}</div>`;
             });
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     // Search functionality

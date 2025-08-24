@@ -243,15 +243,31 @@ class DockerSwarmManager:
             if since:
                 kwargs['since'] = since
             
-            logs = service.logs(**kwargs)
+            # Get logs - this returns a generator, we need to read it properly
+            logs_generator = service.logs(**kwargs)
             
             # Parse logs
             log_lines = []
-            if logs:
-                log_text = logs.decode('utf-8', errors='ignore')
-                for line in log_text.split('\n'):
-                    if line.strip():
-                        log_lines.append(line)
+            try:
+                # Read from the generator and decode
+                if hasattr(logs_generator, 'read'):
+                    # It's a file-like object
+                    log_content = logs_generator.read()
+                elif hasattr(logs_generator, '__iter__'):
+                    # It's a generator/iterator
+                    log_content = b''.join(logs_generator)
+                else:
+                    # It's already bytes
+                    log_content = logs_generator
+                
+                if log_content:
+                    log_text = log_content.decode('utf-8', errors='ignore')
+                    for line in log_text.split('\n'):
+                        if line.strip():
+                            log_lines.append(line.strip())
+            except Exception as parse_error:
+                logger.error(f"Error parsing service logs: {parse_error}")
+                return {'logs': [], 'error': f'Error parsing logs: {str(parse_error)}'}
             
             return {
                 'logs': log_lines,
@@ -281,15 +297,35 @@ class DockerSwarmManager:
             if since:
                 kwargs['since'] = since
             
-            logs = container.logs(**kwargs)
+            # Get logs - handle both bytes and generator responses
+            logs_response = container.logs(**kwargs)
             
             # Parse logs
             log_lines = []
-            if logs:
-                log_text = logs.decode('utf-8', errors='ignore')
-                for line in log_text.split('\n'):
-                    if line.strip():
-                        log_lines.append(line)
+            try:
+                # Handle different response types
+                if hasattr(logs_response, 'read'):
+                    # It's a file-like object
+                    log_content = logs_response.read()
+                elif hasattr(logs_response, '__iter__') and not isinstance(logs_response, (str, bytes)):
+                    # It's a generator/iterator
+                    log_content = b''.join(logs_response)
+                else:
+                    # It's already bytes or string
+                    log_content = logs_response
+                
+                if log_content:
+                    if isinstance(log_content, bytes):
+                        log_text = log_content.decode('utf-8', errors='ignore')
+                    else:
+                        log_text = str(log_content)
+                    
+                    for line in log_text.split('\n'):
+                        if line.strip():
+                            log_lines.append(line.strip())
+            except Exception as parse_error:
+                logger.error(f"Error parsing container logs: {parse_error}")
+                return {'logs': [], 'error': f'Error parsing logs: {str(parse_error)}'}
             
             return {
                 'logs': log_lines,

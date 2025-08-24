@@ -35,6 +35,7 @@ urlpatterns = [
     # API endpoints
     path("api/services/", views.api_services, name="api_services"),
     path("api/services/<str:service_id>/logs/", views.api_service_logs, name="api_service_logs"),
+    path("api/containers/<str:container_id>/logs/", views.api_container_logs, name="api_container_logs"),
     path("api/nodes/", views.api_nodes, name="api_nodes"),
     path("api/system/", views.api_system_info, name="api_system_info"),
     path("api/services/create/", views.create_service, name="api_create_service"),
