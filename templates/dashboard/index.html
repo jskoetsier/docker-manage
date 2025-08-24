@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Dashboard</h1>
+    <div class="text-muted">
+        <i class="bi bi-arrow-clockwise"></i>
+        Auto-refresh: 5s
+    </div>
+</div>
+
+<!-- System Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card metric-card h-100 border-primary">
+            <div class="card-body text-center">
+                <div class="display-6 text-primary mb-2">
+                    <i class="bi bi-hdd-stack"></i>
+                </div>
+                <h5 class="card-title">Swarm Status</h5>
+                <p class="card-text">
+                    {% if swarm_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card metric-card h-100 border-info">
+            <div class="card-body text-center">
+                <div class="display-6 text-info mb-2">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <h5 class="card-title">Nodes</h5>
+                <p class="card-text">
+                    <span class="h4" id="nodes-count">{{ nodes|length }}</span>
+                    <small class="text-muted">nodes</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card metric-card h-100 border-success">
+            <div class="card-body text-center">
+                <div class="display-6 text-success mb-2">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <h5 class="card-title">Services</h5>
+                <p class="card-text">
+                    <span class="h4" id="services-count">{{ services|length }}</span>
+                    <small class="text-muted">services</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card metric-card h-100 border-warning">
+            <div class="card-body text-center">
+                <div class="display-6 text-warning mb-2">
+                    <i class="bi bi-box"></i>
+                </div>
+                <h5 class="card-title">Containers</h5>
+                <p class="card-text">
+                    <span class="h4" id="containers-count">{{ system_info.containers_running|default:0 }}</span>
+                    <small class="text-muted">running</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Swarm Information -->
+{% if swarm_active and swarm_info %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Swarm Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Node ID:</dt>
+                            <dd class="col-sm-8"><code>{{ swarm_info.node_id|truncatechars:12 }}</code></dd>
+                            
+                            <dt class="col-sm-4">Node Address:</dt>
+                            <dd class="col-sm-8">{{ swarm_info.node_addr|default:"N/A" }}</dd>
+                            
+                            <dt class="col-sm-4">Managers:</dt>
+                            <dd class="col-sm-8">{{ swarm_info.managers|default:0 }}</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Total Nodes:</dt>
+                            <dd class="col-sm-8">{{ swarm_info.nodes|default:0 }}</dd>
+                            
+                            <dt class="col-sm-4">Cluster ID:</dt>
+                            <dd class="col-sm-8">
+                                {% if swarm_info.cluster_id %}
+                                    <code>{{ swarm_info.cluster_id|truncatechars:12 }}</code>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-4">Control Available:</dt>
+                            <dd class="col-sm-8">
+                                {% if swarm_info.control_available %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cpu"></i>
+                    System Resources
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">CPU Cores:</dt>
+                    <dd class="col-sm-8">{{ system_info.cpus|default:0 }}</dd>
+                    
+                    <dt class="col-sm-4">Memory:</dt>
+                    <dd class="col-sm-8" id="total-memory">
+                        {% if system_info.memory %}
+                            {{ system_info.memory|filesizeformat }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">Docker Version:</dt>
+                    <dd class="col-sm-8">{{ system_info.server_version|default:"N/A" }}</dd>
+                    
+                    <dt class="col-sm-4">OS:</dt>
+                    <dd class="col-sm-8">{{ system_info.operating_system|default:"N/A" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Services -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Services Overview
+                </h5>
+                <a href="{% url 'services' %}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if services %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="services-table">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Image</th>
+                                    <th>Replicas</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for service in services|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-gear text-muted me-2"></i>
+                                        <a href="{% url 'service_detail' service.id %}" class="text-decoration-none">
+                                            {{ service.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ service.image|truncatechars:40 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ service.running_tasks }}/{{ service.total_tasks }}</span>
+                                    </td>
+                                    <td>
+                                        {% if service.running_tasks == service.total_tasks and service.total_tasks > 0 %}
+                                            <span class="service-status status-running"></span>
+                                            <span class="badge bg-success">Running</span>
+                                        {% elif service.running_tasks > 0 %}
+                                            <span class="service-status status-pending"></span>
+                                            <span class="badge bg-warning">Partial</span>
+                                        {% else %}
+                                            <span class="service-status status-stopped"></span>
+                                            <span class="badge bg-secondary">Stopped</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-gear display-4"></i>
+                        <p class="mt-2">No services found</p>
+                        {% if swarm_active %}
+                            <a href="{% url 'create_service' %}" class="btn btn-primary">Create Service</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-diagram-3"></i>
+                    Nodes Status
+                </h5>
+                <a href="{% url 'nodes' %}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if nodes %}
+                    <div id="nodes-list">
+                        {% for node in nodes %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+                            <div>
+                                <div class="fw-bold">{{ node.hostname }}</div>
+                                <small class="text-muted">{{ node.role|title }}</small>
+                            </div>
+                            <div class="text-end">
+                                {% if node.status == 'ready' %}
+                                    <span class="badge bg-success">Ready</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ node.status|title }}</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ node.availability|title }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-diagram-3 display-4"></i>
+                        <p class="mt-2">No nodes found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleRealtimeUpdate(data) {
+        if (data.type === 'services_update') {
+            updateServicesCount(data.data.length);
+            updateServicesTable(data.data);
+        } else if (data.type === 'nodes_update') {
+            updateNodesCount(data.data.length);
+            updateNodesList(data.data);
+        } else if (data.type === 'system_info_update') {
+            updateSystemInfo(data.data);
+        }
+    }
+    
+    function updateServicesCount(count) {
+        document.getElementById('services-count').textContent = count;
+    }
+    
+    function updateNodesCount(count) {
+        document.getElementById('nodes-count').textContent = count;
+    }
+    
+    function updateSystemInfo(data) {
+        if (data.system_info && data.system_info.containers_running !== undefined) {
+            document.getElementById('containers-count').textContent = data.system_info.containers_running;
+        }
+    }
+    
+    function updateServicesTable(services) {
+        const tbody = document.querySelector('#services-table tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        services.slice(0, 5).forEach(service => {
+            const row = document.createElement('tr');
+            
+            let statusBadge, statusDot;
+            if (service.running_tasks === service.total_tasks && service.total_tasks > 0) {
+                statusBadge = '<span class="badge bg-success">Running</span>';
+                statusDot = '<span class="service-status status-running"></span>';
+            } else if (service.running_tasks > 0) {
+                statusBadge = '<span class="badge bg-warning">Partial</span>';
+                statusDot = '<span class="service-status status-pending"></span>';
+            } else {
+                statusBadge = '<span class="badge bg-secondary">Stopped</span>';
+                statusDot = '<span class="service-status status-stopped"></span>';
+            }
+            
+            row.innerHTML = `
+                <td>
+                    <i class="bi bi-gear text-muted me-2"></i>
+                    <a href="/services/${service.id}/" class="text-decoration-none">
+                        ${service.name}
+                    </a>
+                </td>
+                <td>
+                    <small class="text-muted">${service.image.length > 40 ? service.image.substring(0, 37) + '...' : service.image}</small>
+                </td>
+                <td>
+                    <span class="badge bg-info">${service.running_tasks}/${service.total_tasks}</span>
+                </td>
+                <td>
+                    ${statusDot}
+                    ${statusBadge}
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    function updateNodesList(nodes) {
+        const nodesList = document.getElementById('nodes-list');
+        if (!nodesList) return;
+        
+        nodesList.innerHTML = '';
+        nodes.forEach(node => {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'd-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded';
+            
+            const statusBadge = node.status === 'ready' ? 
+                '<span class="badge bg-success">Ready</span>' : 
+                `<span class="badge bg-danger">${node.status.charAt(0).toUpperCase() + node.status.slice(1)}</span>`;
+            
+            nodeDiv.innerHTML = `
+                <div>
+                    <div class="fw-bold">${node.hostname}</div>
+                    <small class="text-muted">${node.role.charAt(0).toUpperCase() + node.role.slice(1)}</small>
+                </div>
+                <div class="text-end">
+                    ${statusBadge}
+                    <br>
+                    <small class="text-muted">${node.availability.charAt(0).toUpperCase() + node.availability.slice(1)}</small>
+                </div>
+            `;
+            
+            nodesList.appendChild(nodeDiv);
+        });
+    }
+</script>
+{% endblock %}

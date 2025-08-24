@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Nodes - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Swarm Nodes</h1>
+    <button class="btn btn-outline-secondary" onclick="refreshNodes()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+    </button>
+</div>
+
+{% if not swarm_active %}
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    Docker Swarm is not active. Please initialize swarm mode to view nodes.
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if nodes %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="nodes-table">
+                    <thead>
+                        <tr>
+                            <th>Hostname</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Availability</th>
+                            <th>Resources</th>
+                            <th>Engine Version</th>
+                            <th>Platform</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for node in nodes %}
+                        <tr data-node-id="{{ node.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if node.leader %}
+                                        <i class="bi bi-star-fill text-warning me-2" title="Leader"></i>
+                                    {% elif node.role == 'manager' %}
+                                        <i class="bi bi-shield-check text-primary me-2" title="Manager"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted me-2" title="Worker"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ node.hostname }}</div>
+                                        <small class="text-muted">{{ node.id|truncatechars:12 }}</small>
+                                        {% if node.manager_addr %}
+                                            <br><small class="text-info">{{ node.manager_addr }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if node.role == 'manager' %}
+                                    <span class="badge bg-primary">Manager</span>
+                                    {% if node.leader %}
+                                        <br><span class="badge bg-warning">Leader</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">Worker</span>
+                                {% endif %}
+                            </td>
+                            <td class="node-status-cell">
+                                {% if node.status == 'ready' %}
+                                    <span class="badge bg-success">Ready</span>
+                                {% elif node.status == 'down' %}
+                                    <span class="badge bg-danger">Down</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ node.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if node.availability == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elif node.availability == 'drain' %}
+                                    <span class="badge bg-warning">Drain</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ node.availability|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="bi bi-cpu text-muted"></i>
+                                    {{ node.resources.cpu|floatformat:1 }} CPUs
+                                </div>
+                                <div>
+                                    <i class="bi bi-memory text-muted"></i>
+                                    {{ node.resources.memory|floatformat:1 }} GB
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ node.engine_version }}</small>
+                            </td>
+                            <td>
+                                <div>{{ node.platform|title }}</div>
+                                <small class="text-muted">{{ node.architecture }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-diagram-3 display-4 text-muted"></i>
+                <h3 class="mt-3 text-muted">No Nodes Found</h3>
+                <p class="text-muted">Initialize Docker Swarm to see nodes.</p>
+                {% if not swarm_active %}
+                    <div class="alert alert-info mt-4">
+                        <h6>Initialize Docker Swarm</h6>
+                        <p class="mb-2">To start using Docker Swarm, run:</p>
+                        <code>docker swarm init</code>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if nodes %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Node Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="display-6 text-primary">
+                                {{ nodes|length }}
+                            </div>
+                            <small class="text-muted">Total Nodes</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="display-6 text-warning">
+                                {% with managers=nodes|length %}
+                                    {% for node in nodes %}
+                                        {% if node.role == 'manager' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Managers</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="display-6 text-info">
+                                {% with workers=0 %}
+                                    {% for node in nodes %}
+                                        {% if node.role == 'worker' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Workers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cpu"></i>
+                    Resource Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="metric-card text-center">
+                            <div class="display-6 text-success">
+                                {% with total_cpu=0 %}
+                                    {% for node in nodes %}
+                                        {{ node.resources.cpu|add:total_cpu }}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Total CPUs</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card text-center">
+                            <div class="display-6 text-info">
+                                {% with total_memory=0 %}
+                                    {% for node in nodes %}
+                                        {{ node.resources.memory|floatformat:0|add:total_memory }}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Total Memory (GB)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleRealtimeUpdate(data) {
+        if (data.type === 'nodes_update') {
+            updateNodesTable(data.data);
+        }
+    }
+    
+    function refreshNodes() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({'type': 'get_nodes'}));
+        } else {
+            location.reload();
+        }
+    }
+    
+    function updateNodesTable(nodes) {
+        const tbody = document.querySelector('#nodes-table tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        nodes.forEach(node => {
+            const row = document.createElement('tr');
+            row.setAttribute('data-node-id', node.id);
+            
+            let roleIcon = '';
+            let roleBadge = '';
+            
+            if (node.leader) {
+                roleIcon = '<i class="bi bi-star-fill text-warning me-2" title="Leader"></i>';
+                roleBadge = '<span class="badge bg-primary">Manager</span><br><span class="badge bg-warning">Leader</span>';
+            } else if (node.role === 'manager') {
+                roleIcon = '<i class="bi bi-shield-check text-primary me-2" title="Manager"></i>';
+                roleBadge = '<span class="badge bg-primary">Manager</span>';
+            } else {
+                roleIcon = '<i class="bi bi-circle text-muted me-2" title="Worker"></i>';
+                roleBadge = '<span class="badge bg-secondary">Worker</span>';
+            }
+            
+            let statusBadge = '';
+            if (node.status === 'ready') {
+                statusBadge = '<span class="badge bg-success">Ready</span>';
+            } else if (node.status === 'down') {
+                statusBadge = '<span class="badge bg-danger">Down</span>';
+            } else {
+                statusBadge = `<span class="badge bg-warning">${node.status.charAt(0).toUpperCase() + node.status.slice(1)}</span>`;
+            }
+            
+            let availabilityBadge = '';
+            if (node.availability === 'active') {
+                availabilityBadge = '<span class="badge bg-success">Active</span>';
+            } else if (node.availability === 'drain') {
+                availabilityBadge = '<span class="badge bg-warning">Drain</span>';
+            } else {
+                availabilityBadge = `<span class="badge bg-secondary">${node.availability.charAt(0).toUpperCase() + node.availability.slice(1)}</span>`;
+            }
+            
+            const managerAddr = node.manager_addr ? 
+                `<br><small class="text-info">${node.manager_addr}</small>` : '';
+            
+            row.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center">
+                        ${roleIcon}
+                        <div>
+                            <div class="fw-bold">${node.hostname}</div>
+                            <small class="text-muted">${node.id.substring(0, 12)}</small>
+                            ${managerAddr}
+                        </div>
+                    </div>
+                </td>
+                <td>${roleBadge}</td>
+                <td class="node-status-cell">${statusBadge}</td>
+                <td>${availabilityBadge}</td>
+                <td>
+                    <div>
+                        <i class="bi bi-cpu text-muted"></i>
+                        ${node.resources.cpu.toFixed(1)} CPUs
+                    </div>
+                    <div>
+                        <i class="bi bi-memory text-muted"></i>
+                        ${node.resources.memory.toFixed(1)} GB
+                    </div>
+                </td>
+                <td>
+                    <small class="text-muted">${node.engine_version}</small>
+                </td>
+                <td>
+                    <div>${node.platform.charAt(0).toUpperCase() + node.platform.slice(1)}</div>
+                    <small class="text-muted">${node.architecture}</small>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Service - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Create Service</h1>
+    <a href="{% url 'services' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Back to Services
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-plus-circle"></i>
+                    Service Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Configuration -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Service Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   placeholder="my-service">
+                            <div class="form-text">Must be a valid Docker service name</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="replicas" class="form-label">Replicas</label>
+                            <input type="number" class="form-control" id="replicas" name="replicas" 
+                                   value="1" min="1" max="100">
+                            <div class="form-text">Number of service replicas</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Docker Image *</label>
+                        <input type="text" class="form-control" id="image" name="image" required
+                               placeholder="nginx:latest">
+                        <div class="form-text">Docker image to use for the service</div>
+                    </div>
+                    
+                    <!-- Port Configuration -->
+                    <div class="mb-3">
+                        <label for="ports" class="form-label">Port Mappings</label>
+                        <textarea class="form-control" id="ports" name="ports" rows="3"
+                                  placeholder='[{"published_port": 80, "target_port": 80, "protocol": "tcp"}]'></textarea>
+                        <div class="form-text">JSON array of port mappings (optional)</div>
+                    </div>
+                    
+                    <!-- Environment Variables -->
+                    <div class="mb-3">
+                        <label for="env" class="form-label">Environment Variables</label>
+                        <textarea class="form-control" id="env" name="env" rows="4"
+                                  placeholder="KEY1=value1&#10;KEY2=value2"></textarea>
+                        <div class="form-text">One environment variable per line in KEY=value format</div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'services' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i>
+                            Create Service
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Help
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Common Images</h6>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 mb-1" 
+                            onclick="setImage('nginx:latest')">nginx</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 mb-1" 
+                            onclick="setImage('httpd:latest')">apache</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 mb-1" 
+                            onclick="setImage('redis:latest')">redis</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 mb-1" 
+                            onclick="setImage('postgres:latest')">postgres</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 mb-1" 
+                            onclick="setImage('mysql:latest')">mysql</button>
+                </div>
+                
+                <h6>Port Mapping Example</h6>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <pre><code>[
+  {
+    "published_port": 80,
+    "target_port": 80,
+    "protocol": "tcp"
+  }
+]</code></pre>
+                    </small>
+                </div>
+                
+                <h6>Environment Variables</h6>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        Format: KEY=value<br>
+                        Example:<br>
+                        <code>DATABASE_URL=postgres://...</code><br>
+                        <code>DEBUG=true</code>
+                    </small>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Tip:</strong> Make sure your Docker Swarm is initialized before creating services.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function setImage(image) {
+        document.getElementById('image').value = image;
+        
+        // Set common port mappings for known services
+        const commonPorts = {
+            'nginx:latest': '[{"published_port": 80, "target_port": 80, "protocol": "tcp"}]',
+            'httpd:latest': '[{"published_port": 80, "target_port": 80, "protocol": "tcp"}]',
+            'redis:latest': '[{"published_port": 6379, "target_port": 6379, "protocol": "tcp"}]',
+            'postgres:latest': '[{"published_port": 5432, "target_port": 5432, "protocol": "tcp"}]',
+            'mysql:latest': '[{"published_port": 3306, "target_port": 3306, "protocol": "tcp"}]'
+        };
+        
+        if (commonPorts[image]) {
+            document.getElementById('ports').value = commonPorts[image];
+        }
+        
+        // Set common environment variables
+        const commonEnvs = {
+            'postgres:latest': 'POSTGRES_DB=mydb\nPOSTGRES_USER=user\nPOSTGRES_PASSWORD=password',
+            'mysql:latest': 'MYSQL_ROOT_PASSWORD=rootpassword\nMYSQL_DATABASE=mydb\nMYSQL_USER=user\nMYSQL_PASSWORD=password'
+        };
+        
+        if (commonEnvs[image]) {
+            document.getElementById('env').value = commonEnvs[image];
+        }
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const portsInput = document.getElementById('ports');
+        
+        if (portsInput.value.trim() !== '') {
+            try {
+                JSON.parse(portsInput.value);
+            } catch (error) {
+                e.preventDefault();
+                showToast('Invalid JSON format in port mappings', 'danger');
+                return false;
+            }
+        }
+        
+        return true;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Services - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Services</h1>
+    <div>
+        {% if swarm_active %}
+            <a href="{% url 'create_service' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Create Service
+            </a>
+        {% endif %}
+        <button class="btn btn-outline-secondary" onclick="refreshServices()">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+{% if not swarm_active %}
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    Docker Swarm is not active. Please initialize swarm mode to manage services.
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if services %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="services-table">
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Image</th>
+                            <th>Mode</th>
+                            <th>Replicas</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr data-service-id="{{ service.id }}">
+                            <td>
+                                <i class="bi bi-gear text-muted me-2"></i>
+                                <a href="{% url 'service_detail' service.id %}" class="text-decoration-none fw-bold">
+                                    {{ service.name }}
+                                </a>
+                                {% if service.labels %}
+                                    <br>
+                                    {% for key, value in service.labels.items %}
+                                        <span class="badge bg-light text-dark me-1">{{ key }}={{ value }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-muted">{{ service.image|truncatechars:50 }}</div>
+                                {% if service.ports %}
+                                    <small class="text-info">
+                                        {% for port in service.ports %}
+                                            {% if port.published_port %}
+                                                {{ port.published_port }}:{{ port.target_port }}/{{ port.protocol }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ service.mode|title }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info service-replicas">{{ service.running_tasks }}/{{ service.total_tasks }}</span>
+                                {% if service.mode == 'replicated' %}
+                                    <br>
+                                    <small class="text-muted">Target: {{ service.replicas }}</small>
+                                {% endif %}
+                            </td>
+                            <td class="service-status-cell">
+                                {% if service.running_tasks == service.total_tasks and service.total_tasks > 0 %}
+                                    <span class="service-status status-running"></span>
+                                    <span class="badge bg-success">Running</span>
+                                {% elif service.running_tasks > 0 %}
+                                    <span class="service-status status-pending"></span>
+                                    <span class="badge bg-warning">Partial</span>
+                                {% else %}
+                                    <span class="service-status status-stopped"></span>
+                                    <span class="badge bg-secondary">Stopped</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ service.created|date:"M d, Y H:i" }}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            onclick="restartService('{{ service.id }}', '{{ service.name }}')">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                        Restart
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" 
+                                            onclick="showScaleModal('{{ service.id }}', '{{ service.name }}', {{ service.replicas }})">
+                                        <i class="bi bi-arrows-angle-expand"></i>
+                                        Scale
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            onclick="removeService('{{ service.id }}', '{{ service.name }}')">
+                                        <i class="bi bi-trash"></i>
+                                        Remove
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-gear display-4 text-muted"></i>
+                <h3 class="mt-3 text-muted">No Services Found</h3>
+                <p class="text-muted">Get started by creating your first service.</p>
+                {% if swarm_active %}
+                    <a href="{% url 'create_service' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i>
+                        Create Service
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Scale Service Modal -->
+<div class="modal fade" id="scaleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scale Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scaleForm">
+                    <div class="mb-3">
+                        <label for="serviceNameDisplay" class="form-label">Service</label>
+                        <input type="text" class="form-control" id="serviceNameDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="replicasInput" class="form-label">Number of Replicas</label>
+                        <input type="number" class="form-control" id="replicasInput" min="0" required>
+                        <div class="form-text">Set to 0 to stop all replicas</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="scaleService()">Scale Service</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentServiceId = null;
+    let scaleModal = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        scaleModal = new bootstrap.Modal(document.getElementById('scaleModal'));
+    });
+    
+    function handleRealtimeUpdate(data) {
+        if (data.type === 'services_update') {
+            updateServicesTable(data.data);
+        }
+    }
+    
+    function refreshServices() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({'type': 'get_services'}));
+        } else {
+            location.reload();
+        }
+    }
+    
+    function updateServicesTable(services) {
+        const tbody = document.querySelector('#services-table tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        services.forEach(service => {
+            const row = document.createElement('tr');
+            row.setAttribute('data-service-id', service.id);
+            
+            let statusBadge, statusDot;
+            if (service.running_tasks === service.total_tasks && service.total_tasks > 0) {
+                statusBadge = '<span class="badge bg-success">Running</span>';
+                statusDot = '<span class="service-status status-running"></span>';
+            } else if (service.running_tasks > 0) {
+                statusBadge = '<span class="badge bg-warning">Partial</span>';
+                statusDot = '<span class="service-status status-pending"></span>';
+            } else {
+                statusBadge = '<span class="badge bg-secondary">Stopped</span>';
+                statusDot = '<span class="service-status status-stopped"></span>';
+            }
+            
+            const portsHtml = service.ports && service.ports.length > 0 ? 
+                `<small class="text-info">
+                    ${service.ports.filter(function(port) { return port.published_port; }).map(function(port) { 
+                        return port.published_port + ':' + port.target_port + '/' + port.protocol;
+                    }).join(', ')}
+                </small>` : '';
+            
+            const labelsHtml = service.labels && Object.keys(service.labels).length > 0 ?
+                '<br>' + Object.entries(service.labels).map(([key, value]) =>
+                    `<span class="badge bg-light text-dark me-1">${key}=${value}</span>`
+                ).join('') : '';
+            
+            row.innerHTML = `
+                <td>
+                    <i class="bi bi-gear text-muted me-2"></i>
+                    <a href="/services/${service.id}/" class="text-decoration-none fw-bold">
+                        ${service.name}
+                    </a>
+                    ${labelsHtml}
+                </td>
+                <td>
+                    <div class="text-muted">${service.image.length > 50 ? service.image.substring(0, 47) + '...' : service.image}</div>
+                    ${portsHtml}
+                </td>
+                <td>
+                    <span class="badge bg-secondary">${service.mode.charAt(0).toUpperCase() + service.mode.slice(1)}</span>
+                </td>
+                <td>
+                    <span class="badge bg-info service-replicas">${service.running_tasks}/${service.total_tasks}</span>
+                    ${service.mode === 'replicated' ? `<br><small class="text-muted">Target: ${service.replicas}</small>` : ''}
+                </td>
+                <td class="service-status-cell">
+                    ${statusDot}
+                    ${statusBadge}
+                </td>
+                <td>
+                    <small class="text-muted">
+                        ${formatDate(service.created)}
+                    </small>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                onclick="restartService('${service.id}', '${service.name}')">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Restart
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" 
+                                onclick="showScaleModal('${service.id}', '${service.name}', ${service.replicas})">
+                            <i class="bi bi-arrows-angle-expand"></i>
+                            Scale
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                onclick="removeService('${service.id}', '${service.name}')">
+                            <i class="bi bi-trash"></i>
+                            Remove
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    function restartService(serviceId, serviceName) {
+        if (!confirm(`Are you sure you want to restart the service "${serviceName}"?`)) {
+            return;
+        }
+        
+        fetch(`/services/${serviceId}/restart/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error restarting service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+    
+    function showScaleModal(serviceId, serviceName, currentReplicas) {
+        currentServiceId = serviceId;
+        document.getElementById('serviceNameDisplay').value = serviceName;
+        document.getElementById('replicasInput').value = currentReplicas;
+        scaleModal.show();
+    }
+    
+    function scaleService() {
+        const replicas = parseInt(document.getElementById('replicasInput').value);
+        
+        if (isNaN(replicas) || replicas < 0) {
+            showToast('Please enter a valid number of replicas', 'warning');
+            return;
+        }
+        
+        fetch(`/services/${currentServiceId}/scale/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                replicas: replicas
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                scaleModal.hide();
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error scaling service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+    
+    function removeService(serviceId, serviceName) {
+        if (!confirm(`Are you sure you want to remove the service "${serviceName}"? This action cannot be undone.`)) {
+            return;
+        }
+        
+        fetch(`/services/${serviceId}/remove/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                // Remove the row from the table
+                const row = document.querySelector(`tr[data-service-id="${serviceId}"]`);
+                if (row) {
+                    row.remove();
+                }
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error removing service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}

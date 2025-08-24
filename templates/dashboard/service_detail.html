@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.Spec.Name }} - Service Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-gear text-muted me-2"></i>
+        {{ service.Spec.Name }}
+    </h1>
+    <div>
+        <a href="{% url 'services' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to Services
+        </a>
+        <button class="btn btn-outline-primary" onclick="refreshServiceDetails()">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Service Overview -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Service Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Service ID:</dt>
+                            <dd class="col-sm-8"><code>{{ service.ID|truncatechars:12 }}</code></dd>
+                            
+                            <dt class="col-sm-4">Image:</dt>
+                            <dd class="col-sm-8">{{ service.Spec.TaskTemplate.ContainerSpec.Image }}</dd>
+                            
+                            <dt class="col-sm-4">Mode:</dt>
+                            <dd class="col-sm-8">
+                                {% if service.Spec.Mode.Replicated %}
+                                    <span class="badge bg-info">Replicated</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Global</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-4">Replicas:</dt>
+                            <dd class="col-sm-8">
+                                {% if service.Spec.Mode.Replicated %}
+                                    {{ service.Spec.Mode.Replicated.Replicas }}
+                                {% else %}
+                                    Global (1 per node)
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Created:</dt>
+                            <dd class="col-sm-8">{{ service.CreatedAt|date:"M d, Y H:i" }}</dd>
+                            
+                            <dt class="col-sm-4">Updated:</dt>
+                            <dd class="col-sm-8">{{ service.UpdatedAt|date:"M d, Y H:i" }}</dd>
+                            
+                            <dt class="col-sm-4">Version:</dt>
+                            <dd class="col-sm-8">{{ service.Version.Index }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="restartService('{{ service.ID }}', '{{ service.Spec.Name }}')">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Restart Service
+                    </button>
+                    <button class="btn btn-outline-info" onclick="showScaleModal('{{ service.ID }}', '{{ service.Spec.Name }}', {% if service.Spec.Mode.Replicated %}{{ service.Spec.Mode.Replicated.Replicas }}{% else %}1{% endif %})">
+                        <i class="bi bi-arrows-angle-expand"></i>
+                        Scale Service
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="removeService('{{ service.ID }}', '{{ service.Spec.Name }}')">
+                        <i class="bi bi-trash"></i>
+                        Remove Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Port Configuration -->
+{% if service.Spec.EndpointSpec.Ports %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-ethernet"></i>
+                    Port Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Published Port</th>
+                                <th>Target Port</th>
+                                <th>Protocol</th>
+                                <th>Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for port in service.Spec.EndpointSpec.Ports %}
+                            <tr>
+                                <td><code>{{ port.PublishedPort }}</code></td>
+                                <td><code>{{ port.TargetPort }}</code></td>
+                                <td><span class="badge bg-secondary">{{ port.Protocol|upper }}</span></td>
+                                <td><span class="badge bg-info">{{ port.PublishMode|title }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Environment Variables -->
+{% if service.Spec.TaskTemplate.ContainerSpec.Env %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-ul"></i>
+                    Environment Variables
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for env in service.Spec.TaskTemplate.ContainerSpec.Env %}
+                            <tr>
+                                <td><code>{{ env|cut:"=" }}</code></td>
+                                <td><code>{{ env|cut:"="|slice:"1:" }}</code></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tasks -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i>
+                    Service Tasks
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tasks %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Task ID</th>
+                                    <th>Node</th>
+                                    <th>State</th>
+                                    <th>Desired State</th>
+                                    <th>Created</th>
+                                    <th>Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr>
+                                    <td><code>{{ task.ID|truncatechars:12 }}</code></td>
+                                    <td>{{ task.NodeID|truncatechars:12 }}</td>
+                                    <td>
+                                        {% if task.Status.State == 'running' %}
+                                            <span class="badge bg-success">Running</span>
+                                        {% elif task.Status.State == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif task.Status.State == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ task.Status.State|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ task.DesiredState|title }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ task.CreatedAt|date:"M d, H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ task.UpdatedAt|date:"M d, H:i" }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-list-task display-4"></i>
+                        <p class="mt-2">No tasks found for this service</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scale Service Modal -->
+<div class="modal fade" id="scaleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scale Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scaleForm">
+                    <div class="mb-3">
+                        <label for="serviceNameDisplay" class="form-label">Service</label>
+                        <input type="text" class="form-control" id="serviceNameDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="replicasInput" class="form-label">Number of Replicas</label>
+                        <input type="number" class="form-control" id="replicasInput" min="0" required>
+                        <div class="form-text">Set to 0 to stop all replicas</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="scaleService()">Scale Service</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentServiceId = null;
+    let scaleModal = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        scaleModal = new bootstrap.Modal(document.getElementById('scaleModal'));
+    });
+    
+    function refreshServiceDetails() {
+        location.reload();
+    }
+    
+    function restartService(serviceId, serviceName) {
+        if (!confirm(`Are you sure you want to restart the service "${serviceName}"?`)) {
+            return;
+        }
+        
+        fetch(`/services/${serviceId}/restart/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error restarting service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+    
+    function showScaleModal(serviceId, serviceName, currentReplicas) {
+        currentServiceId = serviceId;
+        document.getElementById('serviceNameDisplay').value = serviceName;
+        document.getElementById('replicasInput').value = currentReplicas;
+        scaleModal.show();
+    }
+    
+    function scaleService() {
+        const replicas = parseInt(document.getElementById('replicasInput').value);
+        
+        if (isNaN(replicas) || replicas < 0) {
+            showToast('Please enter a valid number of replicas', 'warning');
+            return;
+        }
+        
+        fetch(`/services/${currentServiceId}/scale/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                replicas: replicas
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                scaleModal.hide();
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error scaling service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+    
+    function removeService(serviceId, serviceName) {
+        if (!confirm(`Are you sure you want to remove the service "${serviceName}"? This action cannot be undone.`)) {
+            return;
+        }
+        
+        fetch(`/services/${serviceId}/remove/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.href = '/services/', 2000);
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error removing service', 'danger');
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}
