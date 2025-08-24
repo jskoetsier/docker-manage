@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - System information and maintenance tools
   - Real-time audit log monitoring
 
-- **Enhanced User Interface**  
+- **Enhanced User Interface**
   - User dropdown menu in sidebar with profile access
   - Admin-only navigation items for user management
   - Settings page with tabbed interface (Users, Security, System, Audit)

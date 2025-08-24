@@ -65,7 +65,7 @@
         .status-pending { background-color: #ffc107; }
         .status-failed { background-color: #dc3545; }
         .status-stopped { background-color: #6c757d; }
-        
+
         .avatar-circle {
             width: 32px;
             height: 32px;
@@ -104,7 +104,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'nodes' %}active{% endif %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'nodes' %}active{% endif %}"
                        href="{% url 'nodes' %}">
                         <i class="bi bi-diagram-3"></i>
                         Nodes
@@ -112,7 +112,7 @@
                 </li>
                 {% if user.is_authenticated and user.role == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" 
+                        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
                            href="{% url 'settings' %}">
                             <i class="bi bi-gear"></i>
                             Settings
@@ -120,13 +120,13 @@
                     </li>
                 {% endif %}
             </ul>
-            
+
             {% if user.is_authenticated %}
                 <hr class="text-white">
-                
+
                 <div class="px-3">
                     <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-circle me-2">
                                 <i class="bi bi-person"></i>
@@ -186,6 +186,31 @@
 
         <!-- Page content -->
         {% block content %}{% endblock %}
+
+        <!-- Footer with version info -->
+        <footer class="mt-5 py-4 border-top bg-light">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i class="bi bi-hdd-stack me-1"></i>
+                            Docker Swarm Manager
+                            <span class="badge bg-primary ms-2">{{ app_version_display }}</span>
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            {% if build_info.commit_date %}
+                                Built on {{ build_info.commit_date }}
+                            {% endif %}
+                            {% if build_info.branch and build_info.branch != 'HEAD' %}
+                                | Branch: {{ build_info.branch }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Bootstrap JS -->

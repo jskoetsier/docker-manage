@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Compose Import - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-eye me-2"></i>
+        Review Compose Import
+    </h1>
+    <div class="btn-group">
+        <a href="{% url 'import_compose' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to Import
+        </a>
+        <a href="{% url 'clear_compose_import' %}" class="btn btn-outline-warning">
+            <i class="bi bi-x-circle"></i>
+            Clear Import
+        </a>
+    </div>
+</div>
+
+<!-- Import Metadata -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-info-circle"></i>
+            Import Details
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-5">Repository:</dt>
+                    <dd class="col-sm-7">
+                        <a href="{{ metadata.repository_url }}" target="_blank" class="text-decoration-none">
+                            {{ metadata.repository_url|truncatechars:40 }}
+                            <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>
+                    </dd>
+                    
+                    <dt class="col-sm-5">Branch:</dt>
+                    <dd class="col-sm-7"><code>{{ metadata.branch }}</code></dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-6">Total Services:</dt>
+                    <dd class="col-sm-6"><span class="badge bg-primary">{{ metadata.total_services }}</span></dd>
+                    
+                    <dt class="col-sm-6">Compose Files:</dt>
+                    <dd class="col-sm-6"><span class="badge bg-info">{{ metadata.compose_files|length }}</span></dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-5">Networks:</dt>
+                    <dd class="col-sm-7">
+                        {% for network in metadata.networks %}
+                            <span class="badge bg-secondary me-1">{{ network }}</span>
+                        {% empty %}
+                            <span class="text-muted">None</span>
+                        {% endfor %}
+                    </dd>
+                    
+                    <dt class="col-sm-5">Volumes:</dt>
+                    <dd class="col-sm-7">
+                        {% for volume in metadata.volumes %}
+                            <span class="badge bg-secondary me-1">{{ volume }}</span>
+                        {% empty %}
+                            <span class="text-muted">None</span>
+                        {% endfor %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        
+        {% if metadata.compose_files %}
+            <h6 class="mt-3">Compose Files Found:</h6>
+            <ul class="list-unstyled">
+                {% for file in metadata.compose_files %}
+                    <li class="d-flex justify-content-between align-items-center">
+                        <code>{{ file.path }}</code>
+                        <span class="badge bg-success">{{ file.services_count }} services</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Services Selection -->
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-check2-square"></i>
+                Select Services to Deploy
+            </h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">
+                    <i class="bi bi-check-all"></i>
+                    Select All
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="selectNone()">
+                    <i class="bi bi-square"></i>
+                    Select None
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if services %}
+                <div class="row">
+                    {% for service in services %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card border {% if service.warnings %}border-warning{% else %}border-success{% endif %}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input service-checkbox" type="checkbox" 
+                                           name="selected_services" value="{{ service.name }}" 
+                                           id="service_{{ forloop.counter }}">
+                                    <label class="form-check-label fw-bold" for="service_{{ forloop.counter }}">
+                                        {{ service.name }}
+                                    </label>
+                                </div>
+                                {% if service.warnings %}
+                                    <span class="badge bg-warning">{{ service.warnings|length }} warnings</span>
+                                {% else %}
+                                    <span class="badge bg-success">Ready</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">Image:</small>
+                                        <div class="fw-bold text-truncate" title="{{ service.image }}">
+                                            {{ service.image|truncatechars:25 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Replicas:</small>
+                                        <div class="fw-bold">{{ service.replicas }}</div>
+                                    </div>
+                                </div>
+                                
+                                {% if service.ports %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">Ports:</small>
+                                        <div>
+                                            {% for port in service.ports %}
+                                                <span class="badge bg-info me-1">
+                                                    {{ port.published_port }}:{{ port.target_port }}/{{ port.protocol }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if service.environment %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">Environment Variables:</small>
+                                        <div>
+                                            <span class="badge bg-secondary">{{ service.environment|length }} vars</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if service.warnings %}
+                                    <div class="mt-2">
+                                        <small class="text-warning fw-bold">Warnings:</small>
+                                        <ul class="list-unstyled mt-1">
+                                            {% for warning in service.warnings %}
+                                                <li class="small text-warning">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                                    {{ warning }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Service Details Collapse -->
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-info btn-sm" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#details_{{ forloop.counter }}">
+                                        <i class="bi bi-info-circle"></i>
+                                        Show Details
+                                    </button>
+                                </div>
+                                
+                                <div class="collapse mt-2" id="details_{{ forloop.counter }}">
+                                    <div class="border-top pt-2">
+                                        {% if service.environment %}
+                                            <h6 class="small fw-bold">Environment Variables:</h6>
+                                            <div class="small">
+                                                {% for key, value in service.environment.items %}
+                                                    <div><code>{{ key }}={{ value|truncatechars:30 }}</code></div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if service.volumes %}
+                                            <h6 class="small fw-bold mt-2">Volumes:</h6>
+                                            <div class="small">
+                                                {% for volume in service.volumes %}
+                                                    <div><code>{{ volume.source }} → {{ volume.target }}</code></div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if service.networks %}
+                                            <h6 class="small fw-bold mt-2">Networks:</h6>
+                                            <div class="small">
+                                                {% for network in service.networks %}
+                                                    <span class="badge bg-secondary me-1">{{ network }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if service.labels %}
+                                            <h6 class="small fw-bold mt-2">Labels:</h6>
+                                            <div class="small">
+                                                {% for key, value in service.labels.items %}
+                                                    <div><code>{{ key }}={{ value|truncatechars:30 }}</code></div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-cloud-upload"></i>
+                        Deploy Selected Services
+                    </button>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-exclamation-triangle display-4 text-warning"></i>
+                    <h3 class="mt-3 text-muted">No Services Found</h3>
+                    <p class="text-muted">No valid services were found in the imported compose files.</p>
+                    <a href="{% url 'import_compose' %}" class="btn btn-primary">
+                        Try Again
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectAll() {
+        const checkboxes = document.querySelectorAll('.service-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = true);
+    }
+    
+    function selectNone() {
+        const checkboxes = document.querySelectorAll('.service-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('.service-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            showToast('Please select at least one service to deploy', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to deploy ${checkedBoxes.length} service(s) to your Docker Swarm?`)) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Deploying Services...';
+        submitBtn.disabled = true;
+        
+        // Re-enable button after 60 seconds (timeout protection)
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 60000);
+    });
+    
+    // Auto-select services without warnings
+    document.addEventListener('DOMContentLoaded', function() {
+        const serviceCards = document.querySelectorAll('.card.border-success');
+        serviceCards.forEach(card => {
+            const checkbox = card.querySelector('.service-checkbox');
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    });
+</script>
+{% endblock %}

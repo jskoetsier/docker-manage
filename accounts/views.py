@@ -22,16 +22,16 @@ import json
 
 class LoginView(TemplateView):
     template_name = 'accounts/login.html'
-    
+
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('dashboard')
         return super().get(request, *args, **kwargs)
-    
+
     def post(self, request, *args, **kwargs):
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
+
         if username and password:
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -46,7 +46,7 @@ class LoginView(TemplateView):
                 messages.error(request, 'Invalid username or password.')
         else:
             messages.error(request, 'Please provide both username and password.')
-        
+
         return render(request, self.template_name)
 
 
@@ -69,7 +69,7 @@ def register_view(request):
             return redirect('user_list')
     else:
         form = CustomUserCreationForm()
-    
+
     return render(request, 'accounts/register.html', {'form': form})
 
 
@@ -78,7 +78,7 @@ def user_list_view(request):
     """User list view (admin only)"""
     query = request.GET.get('q', '')
     users = User.objects.all()
-    
+
     if query:
         users = users.filter(
             Q(username__icontains=query) |
@@ -86,17 +86,17 @@ def user_list_view(request):
             Q(last_name__icontains=query) |
             Q(email__icontains=query)
         )
-    
+
     paginator = Paginator(users, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'page_obj': page_obj,
         'query': query,
         'total_users': users.count()
     }
-    
+
     return render(request, 'accounts/user_list.html', context)
 
 
@@ -104,19 +104,19 @@ def user_list_view(request):
 def user_detail_view(request, user_id):
     """User detail view (admin only)"""
     user = get_object_or_404(User, id=user_id)
-    
+
     # Get user's recent activity
     recent_logs = AuditLog.objects.filter(user=user).order_by('-timestamp')[:10]
     active_sessions = UserSession.objects.filter(user=user, is_active=True)
     api_keys = APIKey.objects.filter(user=user)
-    
+
     context = {
         'profile_user': user,
         'recent_logs': recent_logs,
         'active_sessions': active_sessions,
         'api_keys': api_keys
     }
-    
+
     return render(request, 'accounts/user_detail.html', context)
 
 
@@ -124,7 +124,7 @@ def user_detail_view(request, user_id):
 def user_edit_view(request, user_id):
     """Edit user view (admin only)"""
     user = get_object_or_404(User, id=user_id)
-    
+
     if request.method == 'POST':
         form = CustomUserChangeForm(request.POST, instance=user)
         if form.is_valid():
@@ -133,7 +133,7 @@ def user_edit_view(request, user_id):
             return redirect('user_detail', user_id=user.id)
     else:
         form = CustomUserChangeForm(instance=user)
-    
+
     return render(request, 'accounts/user_edit.html', {'form': form, 'profile_user': user})
 
 
@@ -142,17 +142,17 @@ def user_edit_view(request, user_id):
 def user_delete_view(request, user_id):
     """Delete user view (admin only)"""
     user = get_object_or_404(User, id=user_id)
-    
+
     if request.user == user:
         messages.error(request, 'You cannot delete your own account.')
         return redirect('user_detail', user_id=user.id)
-    
+
     if request.method == 'POST':
         username = user.username
         user.delete()
         messages.success(request, f'User {username} has been deleted successfully.')
         return redirect('user_list')
-    
+
     return render(request, 'accounts/user_confirm_delete.html', {'profile_user': user})
 
 
@@ -163,13 +163,13 @@ def profile_view(request):
     recent_logs = AuditLog.objects.filter(user=user).order_by('-timestamp')[:10]
     active_sessions = UserSession.objects.filter(user=user, is_active=True)
     api_keys = APIKey.objects.filter(user=user)
-    
+
     context = {
         'recent_logs': recent_logs,
         'active_sessions': active_sessions,
         'api_keys': api_keys
     }
-    
+
     return render(request, 'accounts/profile.html', context)
 
 
@@ -184,7 +184,7 @@ def profile_edit_view(request):
         user.save()
         messages.success(request, 'Your profile has been updated successfully.')
         return redirect('profile')
-    
+
     return render(request, 'accounts/profile_edit.html')
 
 
@@ -202,7 +202,7 @@ def api_key_create_view(request):
     if not request.user.is_api_enabled:
         messages.error(request, 'API access is not enabled for your account.')
         return redirect('api_key_list')
-    
+
     if request.method == 'POST':
         form = APIKeyForm(request.POST)
         if form.is_valid():
@@ -214,7 +214,7 @@ def api_key_create_view(request):
             return redirect('api_key_list')
     else:
         form = APIKeyForm()
-    
+
     return render(request, 'accounts/api_key_create.html', {'form': form})
 
 
@@ -223,13 +223,13 @@ def api_key_create_view(request):
 def api_key_delete_view(request, key_id):
     """Delete API key view"""
     api_key = get_object_or_404(APIKey, id=key_id, user=request.user)
-    
+
     if request.method == 'POST':
         key_name = api_key.name
         api_key.delete()
         messages.success(request, f'API key "{key_name}" has been deleted successfully.')
         return redirect('api_key_list')
-    
+
     return render(request, 'accounts/api_key_confirm_delete.html', {'api_key': api_key})
 
 
@@ -239,29 +239,29 @@ def audit_log_view(request):
     query = request.GET.get('q', '')
     action_filter = request.GET.get('action', '')
     user_filter = request.GET.get('user', '')
-    
+
     logs = AuditLog.objects.all()
-    
+
     if query:
         logs = logs.filter(
             Q(resource__icontains=query) |
             Q(details__icontains=query) |
             Q(ip_address__icontains=query)
         )
-    
+
     if action_filter:
         logs = logs.filter(action=action_filter)
-    
+
     if user_filter:
         logs = logs.filter(user__username__icontains=user_filter)
-    
+
     paginator = Paginator(logs, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     # Get available actions for filter
     actions = AuditLog.objects.values_list('action', flat=True).distinct()
-    
+
     context = {
         'page_obj': page_obj,
         'query': query,
@@ -270,7 +270,7 @@ def audit_log_view(request):
         'actions': actions,
         'total_logs': logs.count()
     }
-    
+
     return render(request, 'accounts/audit_logs.html', context)
 
 
@@ -281,7 +281,7 @@ def terminate_session_view(request, session_id):
     session = get_object_or_404(UserSession, id=session_id, user=request.user)
     session.is_active = False
     session.save()
-    
+
     return JsonResponse({'status': 'success', 'message': 'Session terminated successfully.'})
 
 
@@ -290,14 +290,14 @@ def terminate_session_view(request, session_id):
 def api_user_activity(request):
     """Get user activity data for charts"""
     user = request.user
-    
+
     # Get activity data for the last 30 days
     thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
     activity_logs = AuditLog.objects.filter(
         user=user,
         timestamp__gte=thirty_days_ago
     ).values('action').annotate(count=models.Count('id'))
-    
+
     return JsonResponse({
         'activity': list(activity_logs)
     })
@@ -310,7 +310,7 @@ def settings_view(request):
     import django
     from django.db import connection
     from django.conf import settings
-    
+
     # Get user statistics
     total_users = User.objects.count()
     active_users = User.objects.filter(
@@ -318,21 +318,21 @@ def settings_view(request):
     ).count()
     admin_users = User.objects.filter(role='admin').count()
     api_users = User.objects.filter(is_api_enabled=True).count()
-    
+
     # Get recent users
     recent_users = User.objects.order_by('-date_joined')[:10]
-    
+
     # Get recent audit logs
     recent_logs = AuditLog.objects.order_by('-timestamp')[:20]
-    
+
     # Get system info
     docker_manager = DockerSwarmManager()
-    
+
     try:
         docker_version = docker_manager.get_system_info().get('server_version', 'Unknown')
     except:
         docker_version = 'Unknown'
-    
+
     context = {
         'version': '1.1.0',
         'django_version': django.get_version(),
@@ -350,7 +350,7 @@ def settings_view(request):
         'recent_users': recent_users,
         'recent_logs': recent_logs,
     }
-    
+
     return render(request, 'accounts/settings.html', context)
 
 
@@ -363,13 +363,13 @@ def toggle_user_status(request, user_id):
         user = get_object_or_404(User, id=user_id)
         data = json.loads(request.body)
         activate = data.get('activate', False)
-        
+
         if user == request.user:
             return JsonResponse({'status': 'error', 'message': 'Cannot modify your own account'}, status=400)
-        
+
         user.is_active = activate
         user.save()
-        
+
         action = 'activated' if activate else 'deactivated'
         AuditLog.objects.create(
             user=request.user,
@@ -379,12 +379,12 @@ def toggle_user_status(request, user_id):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             success=True
         )
-        
+
         return JsonResponse({
-            'status': 'success', 
+            'status': 'success',
             'message': f'User {user.username} has been {action} successfully'
         })
-        
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
@@ -395,15 +395,15 @@ def export_logs_view(request):
     import csv
     from django.http import HttpResponse
     from datetime import datetime
-    
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="audit-logs-{datetime.now().strftime("%Y%m%d")}.csv"'
-    
+
     writer = csv.writer(response)
     writer.writerow(['Timestamp', 'User', 'Action', 'Resource', 'IP Address', 'Success', 'Error Message'])
-    
+
     logs = AuditLog.objects.select_related('user').order_by('-timestamp')[:1000]  # Last 1000 logs
-    
+
     for log in logs:
         writer.writerow([
             log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
@@ -414,7 +414,7 @@ def export_logs_view(request):
             'Yes' if log.success else 'No',
             log.error_message
         ])
-    
+
     return response
 
 
@@ -423,26 +423,26 @@ def api_system_uptime(request):
     """Get system uptime"""
     import psutil
     from datetime import datetime, timedelta
-    
+
     try:
         # Get system boot time
         boot_time = datetime.fromtimestamp(psutil.boot_time())
         uptime = datetime.now() - boot_time
-        
+
         # Format uptime
         days = uptime.days
         hours, remainder = divmod(uptime.seconds, 3600)
         minutes, _ = divmod(remainder, 60)
-        
+
         if days > 0:
             uptime_str = f"{days} days, {hours} hours, {minutes} minutes"
         elif hours > 0:
             uptime_str = f"{hours} hours, {minutes} minutes"
         else:
             uptime_str = f"{minutes} minutes"
-        
+
         return JsonResponse({'uptime': uptime_str})
-        
+
     except Exception:
         return JsonResponse({'uptime': 'Unknown'})
 
@@ -454,9 +454,9 @@ def api_user_stats(request):
     active_users = User.objects.filter(
         last_activity__gte=timezone.now() - timezone.timedelta(days=7)
     ).count()
-    
+
     users_by_role = User.objects.values('role').annotate(count=models.Count('id'))
-    
+
     return JsonResponse({
         'total_users': total_users,
         'active_users': active_users,

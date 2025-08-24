@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Docker Compose - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-cloud-download me-2"></i>
+        Import Docker Compose
+    </h1>
+    <div class="btn-group">
+        <a href="{% url 'services' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to Services
+        </a>
+        {% if 'compose_import' in request.session %}
+            <a href="{% url 'clear_compose_import' %}" class="btn btn-outline-warning">
+                <i class="bi bi-x-circle"></i>
+                Clear Import
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-git"></i>
+                    Import from Git Repository
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="repo_url" class="form-label">Repository URL *</label>
+                        <input type="url" class="form-control" id="repo_url" name="repo_url"
+                               placeholder="https://github.com/username/repository.git" required>
+                        <div class="form-text">HTTPS Git repository URL containing Docker Compose files</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="branch" class="form-label">Branch</label>
+                            <input type="text" class="form-control" id="branch" name="branch"
+                                   value="main" placeholder="main">
+                            <div class="form-text">Git branch to use (default: main)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="compose_file_path" class="form-label">Compose File Path</label>
+                            <input type="text" class="form-control" id="compose_file_path" name="compose_file_path"
+                                   placeholder="docker-compose.yml">
+                            <div class="form-text">Optional: specific path to compose file</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'services' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-download"></i>
+                            Import Compose File
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-star"></i>
+                    Popular Examples
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Try these popular Docker Compose examples:
+                </p>
+
+                {% for repo in popular_repos %}
+                <div class="card border-0 bg-light mb-2">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-1">{{ repo.name }}</h6>
+                                <p class="card-text small text-muted mb-2">{{ repo.description }}</p>
+                                <button class="btn btn-outline-primary btn-sm"
+                                        onclick="useExample('{{ repo.url }}', '{{ repo.path|default:'' }}')">
+                                    <i class="bi bi-arrow-right"></i>
+                                    Use This
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    How It Works
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="step-item mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary rounded-pill me-2">1</span>
+                        <strong>Clone Repository</strong>
+                    </div>
+                    <p class="small text-muted">
+                        We'll clone the Git repository and scan for Docker Compose files.
+                    </p>
+                </div>
+
+                <div class="step-item mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary rounded-pill me-2">2</span>
+                        <strong>Parse & Convert</strong>
+                    </div>
+                    <p class="small text-muted">
+                        Compose services are converted to Docker Swarm format.
+                    </p>
+                </div>
+
+                <div class="step-item mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary rounded-pill me-2">3</span>
+                        <strong>Review & Deploy</strong>
+                    </div>
+                    <p class="small text-muted">
+                        Review the services and select which ones to deploy.
+                    </p>
+                </div>
+
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Note:</strong> Some Compose features may not be directly supported in Swarm mode. We'll show warnings for any compatibility issues.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function useExample(repoUrl, composePath) {
+        document.getElementById('repo_url').value = repoUrl;
+        if (composePath) {
+            document.getElementById('compose_file_path').value = composePath;
+        }
+
+        // Scroll to form
+        document.querySelector('.card form').scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+
+        // Highlight the URL field
+        setTimeout(() => {
+            document.getElementById('repo_url').focus();
+        }, 500);
+    }
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const repoUrl = document.getElementById('repo_url').value.trim();
+
+        if (!repoUrl) {
+            e.preventDefault();
+            showToast('Repository URL is required', 'warning');
+            return;
+        }
+
+        // Basic URL validation
+        try {
+            const url = new URL(repoUrl);
+            if (!['http:', 'https:'].includes(url.protocol)) {
+                e.preventDefault();
+                showToast('Repository URL must use HTTP or HTTPS', 'warning');
+                return;
+            }
+        } catch (err) {
+            e.preventDefault();
+            showToast('Please enter a valid repository URL', 'warning');
+            return;
+        }
+
+        // Show loading message
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Importing...';
+        submitBtn.disabled = true;
+
+        // Re-enable button after 30 seconds (timeout protection)
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 30000);
+    });
+</script>
+{% endblock %}

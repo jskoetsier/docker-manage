@@ -7,10 +7,16 @@
     <h1 class="h3">Services</h1>
     <div>
         {% if swarm_active %}
-            <a href="{% url 'create_service' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i>
-                Create Service
-            </a>
+            <div class="btn-group">
+                <a href="{% url 'create_service' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Create Service
+                </a>
+                <a href="{% url 'import_compose' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-cloud-download"></i>
+                    Import from Git
+                </a>
+            </div>
         {% endif %}
         <button class="btn btn-outline-secondary" onclick="refreshServices()">
             <i class="bi bi-arrow-clockwise"></i>
