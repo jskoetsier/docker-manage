@@ -36,7 +36,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-9">
         <div class="tab-content">
             <!-- User Management Tab -->
@@ -80,7 +80,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Recent Users -->
                         <h6>Recent Users</h6>
                         <div class="table-responsive">
@@ -145,7 +145,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div class="text-center mt-3">
                             <a href="{% url 'user_list' %}" class="btn btn-outline-primary">
                                 View All Users
@@ -154,7 +154,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Security Tab -->
             <div class="tab-pane fade" id="security">
                 <div class="card">
@@ -197,7 +197,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <h6>Session Management</h6>
                                 <div class="mb-3">
@@ -212,7 +212,7 @@
                                     <label class="form-label">Lockout Duration (minutes)</label>
                                     <input type="number" class="form-control" value="15" min="5" max="60">
                                 </div>
-                                
+
                                 <h6 class="mt-4">API Security</h6>
                                 <div class="mb-3">
                                     <div class="form-check">
@@ -228,7 +228,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="text-end">
                             <button class="btn btn-primary" onclick="saveSecuritySettings()">
                                 <i class="bi bi-save"></i>
@@ -238,7 +238,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- System Info Tab -->
             <div class="tab-pane fade" id="system">
                 <div class="card mb-4">
@@ -254,13 +254,13 @@
                                 <dl class="row">
                                     <dt class="col-sm-5">Version:</dt>
                                     <dd class="col-sm-7"><code>{{ version }}</code></dd>
-                                    
+
                                     <dt class="col-sm-5">Django Version:</dt>
                                     <dd class="col-sm-7"><code>{{ django_version }}</code></dd>
-                                    
+
                                     <dt class="col-sm-5">Python Version:</dt>
                                     <dd class="col-sm-7"><code>{{ python_version }}</code></dd>
-                                    
+
                                     <dt class="col-sm-5">Database:</dt>
                                     <dd class="col-sm-7"><code>{{ database_info }}</code></dd>
                                 </dl>
@@ -269,10 +269,10 @@
                                 <dl class="row">
                                     <dt class="col-sm-5">Uptime:</dt>
                                     <dd class="col-sm-7" id="system-uptime">Loading...</dd>
-                                    
+
                                     <dt class="col-sm-5">Docker Version:</dt>
                                     <dd class="col-sm-7"><code>{{ docker_version }}</code></dd>
-                                    
+
                                     <dt class="col-sm-5">Swarm Status:</dt>
                                     <dd class="col-sm-7">
                                         {% if swarm_active %}
@@ -281,7 +281,7 @@
                                             <span class="badge bg-danger">Inactive</span>
                                         {% endif %}
                                     </dd>
-                                    
+
                                     <dt class="col-sm-5">Debug Mode:</dt>
                                     <dd class="col-sm-7">
                                         {% if debug %}
@@ -295,7 +295,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
@@ -339,7 +339,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Audit Logs Tab -->
             <div class="tab-pane fade" id="audit">
                 <div class="card">
@@ -420,11 +420,11 @@
         color: white;
         font-size: 0.9rem;
     }
-    
+
     .tab-pane {
         min-height: 600px;
     }
-    
+
     .list-group-item-action.active {
         background-color: #667eea;
         border-color: #667eea;
@@ -436,11 +436,11 @@
 <script>
     function toggleUserStatus(userId, activate) {
         const action = activate ? 'activate' : 'deactivate';
-        
+
         if (!confirm(`Are you sure you want to ${action} this user?`)) {
             return;
         }
-        
+
         fetch(`/accounts/users/${userId}/toggle-status/`, {
             method: 'POST',
             headers: {
@@ -463,37 +463,37 @@
             console.error('Error:', error);
         });
     }
-    
+
     function saveSecuritySettings() {
         showToast('Security settings saved successfully', 'success');
     }
-    
+
     function restartServices() {
         if (!confirm('Are you sure you want to restart the services? This may cause a brief interruption.')) {
             return;
         }
-        
+
         showToast('Services restart initiated', 'info');
     }
-    
+
     function cleanupDatabase() {
         if (!confirm('Are you sure you want to cleanup old database records?')) {
             return;
         }
-        
+
         showToast('Database cleanup completed', 'success');
     }
-    
+
     function exportLogs() {
         showToast('Preparing log export...', 'info');
-        
+
         // Create download link for logs
         const link = document.createElement('a');
         link.href = '/accounts/export-logs/';
         link.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
     }
-    
+
     // Update system uptime
     function updateUptime() {
         fetch('/accounts/api/system-uptime/')
@@ -505,7 +505,7 @@
             document.getElementById('system-uptime').textContent = 'Unknown';
         });
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         updateUptime();

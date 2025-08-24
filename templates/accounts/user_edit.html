@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ profile_user.username }} - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-pencil me-2"></i>
+        Edit User: {{ profile_user.username }}
+    </h1>
+    <div class="btn-group">
+        <a href="{% url 'user_detail' profile_user.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to User
+        </a>
+        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+            All Users
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-gear"></i>
+                    User Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">Role *</label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="text-danger">{{ form.role.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.role.help_text }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mt-4">
+                                <div class="form-check mb-2">
+                                    {{ form.is_active }}
+                                    <label for="{{ form.is_active.id_for_label }}" class="form-check-label">
+                                        Account Active
+                                    </label>
+                                    <div class="form-text">{{ form.is_active.help_text }}</div>
+                                </div>
+                                
+                                <div class="form-check">
+                                    {{ form.is_api_enabled }}
+                                    <label for="{{ form.is_api_enabled.id_for_label }}" class="form-check-label">
+                                        API Access Enabled
+                                    </label>
+                                    <div class="form-text">{{ form.is_api_enabled.help_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'user_detail' profile_user.id %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Account Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">User ID:</dt>
+                    <dd class="col-sm-7"><code>{{ profile_user.id }}</code></dd>
+                    
+                    <dt class="col-sm-5">Created:</dt>
+                    <dd class="col-sm-7">{{ profile_user.date_joined|date:"M d, Y" }}</dd>
+                    
+                    <dt class="col-sm-5">Last Login:</dt>
+                    <dd class="col-sm-7">
+                        {% if profile_user.last_login %}
+                            {{ profile_user.last_login|date:"M d, Y H:i" }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-5">Last Activity:</dt>
+                    <dd class="col-sm-7">{{ profile_user.last_activity|date:"M d, Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield"></i>
+                    Security Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if profile_user != user %}
+                        <button class="btn btn-outline-warning btn-sm" onclick="resetPassword()">
+                            <i class="bi bi-key"></i>
+                            Reset Password
+                        </button>
+                        
+                        <button class="btn btn-outline-info btn-sm" onclick="revokeApiKeys()">
+                            <i class="bi bi-x-circle"></i>
+                            Revoke API Keys
+                        </button>
+                        
+                        <button class="btn btn-outline-secondary btn-sm" onclick="terminateAllSessions()">
+                            <i class="bi bi-power"></i>
+                            End All Sessions
+                        </button>
+                        
+                        <hr>
+                        
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteUser()">
+                            <i class="bi bi-trash"></i>
+                            Delete User
+                        </button>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                You cannot perform security actions on your own account.
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function resetPassword() {
+        if (!confirm('Are you sure you want to reset this user\'s password? They will need to set a new password.')) {
+            return;
+        }
+        
+        showToast('Password reset functionality would be implemented here', 'info');
+    }
+    
+    function revokeApiKeys() {
+        if (!confirm('Are you sure you want to revoke all API keys for this user?')) {
+            return;
+        }
+        
+        showToast('API key revocation functionality would be implemented here', 'info');
+    }
+    
+    function terminateAllSessions() {
+        if (!confirm('Are you sure you want to terminate all active sessions for this user?')) {
+            return;
+        }
+        
+        showToast('Session termination functionality would be implemented here', 'info');
+    }
+    
+    function deleteUser() {
+        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            return;
+        }
+        
+        window.location.href = '{% url "user_delete" profile_user.id %}';
+    }
+</script>
+{% endblock %}
