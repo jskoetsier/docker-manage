@@ -1,9 +1,11 @@
 """
 Docker Swarm management utilities
 """
-import docker
+
 import logging
 from typing import Dict, List, Optional
+
+import docker
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -12,10 +14,16 @@ logger = logging.getLogger(__name__)
 class DockerSwarmManager:
     def __init__(self):
         try:
-            self.client = docker.from_env()
-            # Test connection
-            self.client.ping()
-            logger.info("Docker client connected successfully")
+            # Try to connect to Docker without TLS first
+            try:
+                self.client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+                self.client.ping()
+                logger.info("Docker client connected successfully via Unix socket")
+            except Exception:
+                # Fallback to from_env for other configurations
+                self.client = docker.from_env()
+                self.client.ping()
+                logger.info("Docker client connected successfully via environment")
         except Exception as e:
             logger.error(f"Failed to connect to Docker: {e}")
             self.client = None
@@ -25,8 +33,8 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return False
-            swarm_info = self.client.info().get('Swarm', {})
-            return swarm_info.get('LocalNodeState') == 'active'
+            swarm_info = self.client.info().get("Swarm", {})
+            return swarm_info.get("LocalNodeState") == "active"
         except Exception as e:
             logger.error(f"Error checking swarm status: {e}")
             return False
@@ -36,19 +44,21 @@ class DockerSwarmManager:
         try:
             if not self.client or not self.is_swarm_active():
                 return {}
-            
+
             info = self.client.info()
-            swarm_info = info.get('Swarm', {})
-            
+            swarm_info = info.get("Swarm", {})
+
             return {
-                'node_id': swarm_info.get('NodeID'),
-                'node_addr': swarm_info.get('NodeAddr'),
-                'local_node_state': swarm_info.get('LocalNodeState'),
-                'control_available': swarm_info.get('ControlAvailable'),
-                'managers': swarm_info.get('Managers'),
-                'nodes': swarm_info.get('Nodes'),
-                'cluster_id': swarm_info.get('Cluster', {}).get('ID'),
-                'version': swarm_info.get('Cluster', {}).get('Version', {}).get('Index')
+                "node_id": swarm_info.get("NodeID"),
+                "node_addr": swarm_info.get("NodeAddr"),
+                "local_node_state": swarm_info.get("LocalNodeState"),
+                "control_available": swarm_info.get("ControlAvailable"),
+                "managers": swarm_info.get("Managers"),
+                "nodes": swarm_info.get("Nodes"),
+                "cluster_id": swarm_info.get("Cluster", {}).get("ID"),
+                "version": swarm_info.get("Cluster", {})
+                .get("Version", {})
+                .get("Index"),
             }
         except Exception as e:
             logger.error(f"Error getting swarm info: {e}")
@@ -59,24 +69,30 @@ class DockerSwarmManager:
         try:
             if not self.client or not self.is_swarm_active():
                 return []
-            
+
             nodes = []
             for node in self.client.nodes.list():
                 node_info = {
-                    'id': node.id,
-                    'hostname': node.attrs['Description']['Hostname'],
-                    'status': node.attrs['Status']['State'],
-                    'availability': node.attrs['Spec']['Availability'],
-                    'role': node.attrs['Spec']['Role'],
-                    'engine_version': node.attrs['Description']['Engine']['EngineVersion'],
-                    'platform': node.attrs['Description']['Platform']['OS'],
-                    'architecture': node.attrs['Description']['Platform']['Architecture'],
-                    'resources': {
-                        'cpu': node.attrs['Description']['Resources']['NanoCPUs'] / 1000000000,
-                        'memory': node.attrs['Description']['Resources']['MemoryBytes'] / (1024**3)
+                    "id": node.id,
+                    "hostname": node.attrs["Description"]["Hostname"],
+                    "status": node.attrs["Status"]["State"],
+                    "availability": node.attrs["Spec"]["Availability"],
+                    "role": node.attrs["Spec"]["Role"],
+                    "engine_version": node.attrs["Description"]["Engine"][
+                        "EngineVersion"
+                    ],
+                    "platform": node.attrs["Description"]["Platform"]["OS"],
+                    "architecture": node.attrs["Description"]["Platform"][
+                        "Architecture"
+                    ],
+                    "resources": {
+                        "cpu": node.attrs["Description"]["Resources"]["NanoCPUs"]
+                        / 1000000000,
+                        "memory": node.attrs["Description"]["Resources"]["MemoryBytes"]
+                        / (1024**3),
                     },
-                    'leader': node.attrs.get('ManagerStatus', {}).get('Leader', False),
-                    'manager_addr': node.attrs.get('ManagerStatus', {}).get('Addr'),
+                    "leader": node.attrs.get("ManagerStatus", {}).get("Leader", False),
+                    "manager_addr": node.attrs.get("ManagerStatus", {}).get("Addr"),
                 }
                 nodes.append(node_info)
             return nodes
@@ -89,28 +105,43 @@ class DockerSwarmManager:
         try:
             if not self.client or not self.is_swarm_active():
                 return []
-            
+
             services = []
             for service in self.client.services.list():
                 service_info = {
-                    'id': service.id,
-                    'name': service.name,
-                    'image': service.attrs['Spec']['TaskTemplate']['ContainerSpec']['Image'],
-                    'replicas': service.attrs['Spec'].get('Replicas', 0),
-                    'mode': 'replicated' if 'Replicas' in service.attrs['Spec'] else 'global',
-                    'created': service.attrs['CreatedAt'],
-                    'updated': service.attrs['UpdatedAt'],
-                    'ports': self._extract_ports(service.attrs['Spec'].get('EndpointSpec', {})),
-                    'networks': [net['Target'] for net in service.attrs['Spec']['TaskTemplate'].get('Networks', [])],
-                    'labels': service.attrs['Spec'].get('Labels', {}),
+                    "id": service.id,
+                    "name": service.name,
+                    "image": service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"][
+                        "Image"
+                    ],
+                    "replicas": service.attrs["Spec"].get("Replicas", 0),
+                    "mode": (
+                        "replicated"
+                        if "Replicas" in service.attrs["Spec"]
+                        else "global"
+                    ),
+                    "created": service.attrs["CreatedAt"],
+                    "updated": service.attrs["UpdatedAt"],
+                    "ports": self._extract_ports(
+                        service.attrs["Spec"].get("EndpointSpec", {})
+                    ),
+                    "networks": [
+                        net["Target"]
+                        for net in service.attrs["Spec"]["TaskTemplate"].get(
+                            "Networks", []
+                        )
+                    ],
+                    "labels": service.attrs["Spec"].get("Labels", {}),
                 }
-                
+
                 # Get task information
                 tasks = service.tasks()
-                running_tasks = sum(1 for task in tasks if task['Status']['State'] == 'running')
-                service_info['running_tasks'] = running_tasks
-                service_info['total_tasks'] = len(tasks)
-                
+                running_tasks = sum(
+                    1 for task in tasks if task["Status"]["State"] == "running"
+                )
+                service_info["running_tasks"] = running_tasks
+                service_info["total_tasks"] = len(tasks)
+
                 services.append(service_info)
             return services
         except Exception as e:
@@ -122,14 +153,11 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return None
-            
+
             service = self.client.services.get(service_id)
             tasks = service.tasks()
-            
-            return {
-                'service': service.attrs,
-                'tasks': [task for task in tasks]
-            }
+
+            return {"service": service.attrs, "tasks": [task for task in tasks]}
         except Exception as e:
             logger.error(f"Error getting service details: {e}")
             return None
@@ -139,7 +167,7 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return False
-            
+
             service = self.client.services.get(service_id)
             service.force_update()
             logger.info(f"Service {service_id} restarted successfully")
@@ -153,7 +181,7 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return False
-            
+
             service = self.client.services.get(service_id)
             service.scale(replicas)
             logger.info(f"Service {service_id} scaled to {replicas} replicas")
@@ -167,7 +195,7 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return False
-            
+
             service = self.client.services.get(service_id)
             service.remove()
             logger.info(f"Service {service_id} removed successfully")
@@ -176,17 +204,16 @@ class DockerSwarmManager:
             logger.error(f"Error removing service {service_id}: {e}")
             return False
 
-    def create_service(self, image: str, name: str, replicas: int = 1, **kwargs) -> bool:
+    def create_service(
+        self, image: str, name: str, replicas: int = 1, **kwargs
+    ) -> bool:
         """Create a new service"""
         try:
             if not self.client or not self.is_swarm_active():
                 return False
-            
+
             self.client.services.create(
-                image=image,
-                name=name,
-                replicas=replicas,
-                **kwargs
+                image=image, name=name, replicas=replicas, **kwargs
             )
             logger.info(f"Service {name} created successfully")
             return True
@@ -199,20 +226,20 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return {}
-            
+
             info = self.client.info()
             return {
-                'containers': info.get('Containers', 0),
-                'containers_running': info.get('ContainersRunning', 0),
-                'containers_paused': info.get('ContainersPaused', 0),
-                'containers_stopped': info.get('ContainersStopped', 0),
-                'images': info.get('Images', 0),
-                'server_version': info.get('ServerVersion'),
-                'kernel_version': info.get('KernelVersion'),
-                'operating_system': info.get('OperatingSystem'),
-                'architecture': info.get('Architecture'),
-                'cpus': info.get('NCPU', 0),
-                'memory': info.get('MemTotal', 0),
+                "containers": info.get("Containers", 0),
+                "containers_running": info.get("ContainersRunning", 0),
+                "containers_paused": info.get("ContainersPaused", 0),
+                "containers_stopped": info.get("ContainersStopped", 0),
+                "images": info.get("Images", 0),
+                "server_version": info.get("ServerVersion"),
+                "kernel_version": info.get("KernelVersion"),
+                "operating_system": info.get("OperatingSystem"),
+                "architecture": info.get("Architecture"),
+                "cpus": info.get("NCPU", 0),
+                "memory": info.get("MemTotal", 0),
             }
         except Exception as e:
             logger.error(f"Error getting system info: {e}")
@@ -221,11 +248,13 @@ class DockerSwarmManager:
     def _extract_ports(self, endpoint_spec: Dict) -> List[Dict]:
         """Extract port information from service endpoint spec"""
         ports = []
-        for port in endpoint_spec.get('Ports', []):
-            ports.append({
-                'target_port': port.get('TargetPort'),
-                'published_port': port.get('PublishedPort'),
-                'protocol': port.get('Protocol'),
-                'publish_mode': port.get('PublishMode')
-            })
+        for port in endpoint_spec.get("Ports", []):
+            ports.append(
+                {
+                    "target_port": port.get("TargetPort"),
+                    "published_port": port.get("PublishedPort"),
+                    "protocol": port.get("Protocol"),
+                    "publish_mode": port.get("PublishMode"),
+                }
+            )
         return ports
