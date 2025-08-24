@@ -212,9 +212,24 @@ class DockerSwarmManager:
             if not self.client or not self.is_swarm_active():
                 return False
 
-            self.client.services.create(
-                image=image, name=name, replicas=replicas, **kwargs
-            )
+            # Create service spec with replicas
+            service_spec = {
+                'name': name,
+                'task_template': docker.types.TaskTemplate(
+                    container_spec=docker.types.ContainerSpec(image=image)
+                ),
+                'mode': docker.types.ServiceMode('replicated', replicas=replicas)
+            }
+            
+            # Add any additional specs from kwargs
+            if 'ports' in kwargs:
+                service_spec['endpoint_spec'] = docker.types.EndpointSpec(ports=kwargs['ports'])
+            if 'env' in kwargs:
+                service_spec['task_template'] = docker.types.TaskTemplate(
+                    container_spec=docker.types.ContainerSpec(image=image, env=kwargs['env'])
+                )
+
+            self.client.services.create(**service_spec)
             logger.info(f"Service {name} created successfully")
             return True
         except Exception as e:
