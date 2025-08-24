@@ -296,8 +296,23 @@ def import_compose_view(request):
 
             return redirect("review_compose_import")
 
+        except FileNotFoundError as e:
+            if "No Docker Compose files found" in str(e):
+                messages.error(request, 'No Docker Compose files found in the repository. Make sure the repository contains docker-compose.yml or docker-compose.yaml files.')
+            else:
+                messages.error(request, f'File not found: {str(e)}')
+        except RuntimeError as e:
+            if "Failed to clone repository" in str(e):
+                messages.error(request, f'Unable to clone repository. Please check the URL and ensure it\'s a valid Git repository. {str(e)}')
+            else:
+                messages.error(request, f'Repository error: {str(e)}')
+        except ValueError as e:
+            messages.error(request, f'Invalid compose file format: {str(e)}')
         except Exception as e:
-            messages.error(request, f"Error importing compose file: {str(e)}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Unexpected error importing compose file from {repo_url}: {e}")
+            messages.error(request, f'Unexpected error importing compose file: {str(e)}')
 
     context = {"popular_repos": popular_repos}
 

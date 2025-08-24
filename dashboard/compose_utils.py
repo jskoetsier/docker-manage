@@ -36,23 +36,52 @@ class ComposeImporter:
 
             repo_dir = os.path.join(self.temp_dir, 'repo')
 
-            # Clone the repository
-            cmd = ['git', 'clone', '--depth', '1', '-b', branch, repo_url, repo_dir]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            # Try common branch names if the specified one fails
+            branches_to_try = [branch]
+            if branch not in ['main', 'master']:
+                branches_to_try.extend(['main', 'master'])
+            else:
+                branches_to_try.extend(['master', 'main'])
 
-            if result.returncode != 0:
-                # Try without specifying branch if branch doesn't exist
+            # Remove duplicates while preserving order
+            branches_to_try = list(dict.fromkeys(branches_to_try))
+
+            last_error = None
+            for branch_name in branches_to_try:
+                try:
+                    cmd = ['git', 'clone', '--depth', '1', '-b', branch_name, repo_url, repo_dir]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    
+                    if result.returncode == 0:
+                        logger.info(f"Successfully cloned repository {repo_url} (branch: {branch_name})")
+                        return repo_dir
+                    
+                    last_error = result.stderr
+                    
+                    # Clean up failed attempt
+                    if os.path.exists(repo_dir):
+                        shutil.rmtree(repo_dir)
+                        
+                except subprocess.TimeoutExpired:
+                    if os.path.exists(repo_dir):
+                        shutil.rmtree(repo_dir)
+                    raise RuntimeError("Repository clone timed out")
+
+            # If all branches failed, try without specifying branch
+            try:
                 cmd = ['git', 'clone', '--depth', '1', repo_url, repo_dir]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                
+                if result.returncode == 0:
+                    logger.info(f"Successfully cloned repository {repo_url} (default branch)")
+                    return repo_dir
+                    
+                last_error = result.stderr
+            except subprocess.TimeoutExpired:
+                raise RuntimeError("Repository clone timed out")
 
-                if result.returncode != 0:
-                    raise RuntimeError(f"Failed to clone repository: {result.stderr}")
+            raise RuntimeError(f"Failed to clone repository after trying multiple branches. Last error: {last_error}")
 
-            logger.info(f"Successfully cloned repository {repo_url}")
-            return repo_dir
-
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("Repository clone timed out")
         except Exception as e:
             logger.error(f"Error cloning repository {repo_url}: {e}")
             raise
@@ -328,31 +357,43 @@ def get_popular_compose_repositories():
         {
             'name': 'WordPress with MySQL',
             'url': 'https://github.com/docker/awesome-compose',
-            'path': 'wordpress-mysql',
+            'path': 'wordpress-mysql/docker-compose.yml',
             'description': 'WordPress with MySQL database'
         },
         {
             'name': 'NGINX + PHP + MySQL',
             'url': 'https://github.com/docker/awesome-compose',
-            'path': 'nginx-php-mysql',
+            'path': 'nginx-php-mysql/docker-compose.yml',
             'description': 'LEMP stack with NGINX, PHP-FPM and MySQL'
         },
         {
-            'name': 'GitLab',
+            'name': 'Nextcloud with Redis',
+            'url': 'https://github.com/docker/awesome-compose',
+            'path': 'nextcloud-redis-mariadb/docker-compose.yml',
+            'description': 'Nextcloud with Redis and MariaDB'
+        },
+        {
+            'name': 'GitLab CE',
             'url': 'https://github.com/sameersbn/docker-gitlab',
             'path': 'docker-compose.yml',
-            'description': 'GitLab Community Edition'
+            'description': 'GitLab Community Edition (comprehensive setup)'
         },
         {
-            'name': 'Nextcloud',
-            'url': 'https://github.com/nextcloud/docker',
-            'path': 'examples/docker-compose',
-            'description': 'Nextcloud with PostgreSQL'
+            'name': 'Prometheus + Grafana',
+            'url': 'https://github.com/docker/awesome-compose',
+            'path': 'prometheus-grafana/docker-compose.yml',
+            'description': 'Monitoring stack with Prometheus and Grafana'
         },
         {
-            'name': 'Traefik',
-            'url': 'https://github.com/traefik/traefik',
-            'path': 'examples/docker-compose',
-            'description': 'Traefik reverse proxy examples'
+            'name': 'PostgreSQL + Adminer',
+            'url': 'https://github.com/docker/awesome-compose',
+            'path': 'postgresql-adminer/docker-compose.yml',
+            'description': 'PostgreSQL database with Adminer web interface'
+        },
+        {
+            'name': 'Simple Web App',
+            'url': 'https://github.com/docker/awesome-compose',
+            'path': 'nginx-wsgi-flask/docker-compose.yml',
+            'description': 'Simple Flask web application with NGINX'
         }
     ]
