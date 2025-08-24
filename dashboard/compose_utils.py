@@ -34,6 +34,12 @@ class ComposeImporter:
             if not self.temp_dir:
                 raise ValueError("ComposeImporter must be used as context manager")
 
+            # Check if git is available
+            try:
+                subprocess.run(['git', '--version'], capture_output=True, timeout=5)
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                raise RuntimeError("Git is not installed or not available in PATH. Please install Git to use compose import functionality.")
+
             repo_dir = os.path.join(self.temp_dir, 'repo')
 
             # Try common branch names if the specified one fails

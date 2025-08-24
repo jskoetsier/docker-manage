@@ -32,6 +32,10 @@ install_package python3
 install_package python3-pip
 install_package python3-venv
 
+# Install Git (required for compose import)
+echo "🔧 Installing Git..."
+install_package git
+
 # Install Redis
 echo "📊 Installing Redis..."
 install_package redis-server
@@ -107,7 +111,7 @@ Requires=docker.service redis.service
 Type=simple
 User=$USER
 WorkingDirectory=$(pwd)
-Environment=PATH=$(pwd)/venv/bin
+Environment=PATH=$(pwd)/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ExecStart=$(pwd)/venv/bin/python manage.py runserver 0.0.0.0:8000
 Restart=always
 RestartSec=3
