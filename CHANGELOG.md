@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Port mapping configuration
   - Environment variable management
 
-- **Node Management** 
+- **Node Management**
   - View all cluster nodes
   - Monitor node roles (manager/worker)
   - Track node availability and health status
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API Endpoints**
   - RESTful API for programmatic access
   - Service management endpoints
-  - Node information endpoints  
+  - Node information endpoints
   - System information endpoints
   - JSON response format
 
@@ -144,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Future Improvements
 - Enhanced logging and audit trails
-- Multi-user authentication system  
+- Multi-user authentication system
 - Service deployment templates
 - Network management interface
 - Backup and restore functionality
@@ -205,7 +205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Contributors
 
 - Initial development and architecture design
-- Docker Swarm integration implementation  
+- Docker Swarm integration implementation
 - Web interface development
 - Production testing and deployment
 - Documentation and setup automation

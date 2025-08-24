@@ -70,11 +70,11 @@ pip install -r requirements.txt
 if [ ! -f .env ]; then
     echo "⚙️ Creating environment configuration..."
     cp .env.example .env
-    
+
     # Generate a random secret key
     SECRET_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
     sed -i "s/your-secret-key-here/$SECRET_KEY/" .env
-    
+
     echo "Please edit .env file to configure your settings"
 fi
 

@@ -16,7 +16,7 @@ class DockerSwarmManager:
         try:
             # Try to connect to Docker without TLS first
             try:
-                self.client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+                self.client = docker.DockerClient(base_url="unix://var/run/docker.sock")
                 self.client.ping()
                 logger.info("Docker client connected successfully via Unix socket")
             except Exception:
@@ -216,7 +216,7 @@ class DockerSwarmManager:
             self.client.services.create(
                 image,
                 name=name,
-                mode=docker.types.ServiceMode('replicated', replicas=replicas)
+                mode=docker.types.ServiceMode("replicated", replicas=replicas),
             )
             logger.info(f"Service {name} created successfully")
             return True

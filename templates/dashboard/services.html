@@ -98,17 +98,17 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
                                             onclick="restartService('{{ service.id }}', '{{ service.name }}')">
                                         <i class="bi bi-arrow-clockwise"></i>
                                         Restart
                                     </button>
-                                    <button type="button" class="btn btn-outline-info btn-sm" 
+                                    <button type="button" class="btn btn-outline-info btn-sm"
                                             onclick="showScaleModal('{{ service.id }}', '{{ service.name }}', {{ service.replicas }})">
                                         <i class="bi bi-arrows-angle-expand"></i>
                                         Scale
                                     </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    <button type="button" class="btn btn-outline-danger btn-sm"
                                             onclick="removeService('{{ service.id }}', '{{ service.name }}')">
                                         <i class="bi bi-trash"></i>
                                         Remove
@@ -170,17 +170,17 @@
 <script>
     let currentServiceId = null;
     let scaleModal = null;
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         scaleModal = new bootstrap.Modal(document.getElementById('scaleModal'));
     });
-    
+
     function handleRealtimeUpdate(data) {
         if (data.type === 'services_update') {
             updateServicesTable(data.data);
         }
     }
-    
+
     function refreshServices() {
         if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({'type': 'get_services'}));
@@ -188,16 +188,16 @@
             location.reload();
         }
     }
-    
+
     function updateServicesTable(services) {
         const tbody = document.querySelector('#services-table tbody');
         if (!tbody) return;
-        
+
         tbody.innerHTML = '';
         services.forEach(service => {
             const row = document.createElement('tr');
             row.setAttribute('data-service-id', service.id);
-            
+
             let statusBadge, statusDot;
             if (service.running_tasks === service.total_tasks && service.total_tasks > 0) {
                 statusBadge = '<span class="badge bg-success">Running</span>';
@@ -209,19 +209,19 @@
                 statusBadge = '<span class="badge bg-secondary">Stopped</span>';
                 statusDot = '<span class="service-status status-stopped"></span>';
             }
-            
-            const portsHtml = service.ports && service.ports.length > 0 ? 
+
+            const portsHtml = service.ports && service.ports.length > 0 ?
                 `<small class="text-info">
-                    ${service.ports.filter(function(port) { return port.published_port; }).map(function(port) { 
+                    ${service.ports.filter(function(port) { return port.published_port; }).map(function(port) {
                         return port.published_port + ':' + port.target_port + '/' + port.protocol;
                     }).join(', ')}
                 </small>` : '';
-            
+
             const labelsHtml = service.labels && Object.keys(service.labels).length > 0 ?
                 '<br>' + Object.entries(service.labels).map(([key, value]) =>
                     `<span class="badge bg-light text-dark me-1">${key}=${value}</span>`
                 ).join('') : '';
-            
+
             row.innerHTML = `
                 <td>
                     <i class="bi bi-gear text-muted me-2"></i>
@@ -252,17 +252,17 @@
                 </td>
                 <td>
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                        <button type="button" class="btn btn-outline-primary btn-sm"
                                 onclick="restartService('${service.id}', '${service.name}')">
                             <i class="bi bi-arrow-clockwise"></i>
                             Restart
                         </button>
-                        <button type="button" class="btn btn-outline-info btn-sm" 
+                        <button type="button" class="btn btn-outline-info btn-sm"
                                 onclick="showScaleModal('${service.id}', '${service.name}', ${service.replicas})">
                             <i class="bi bi-arrows-angle-expand"></i>
                             Scale
                         </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                        <button type="button" class="btn btn-outline-danger btn-sm"
                                 onclick="removeService('${service.id}', '${service.name}')">
                             <i class="bi bi-trash"></i>
                             Remove
@@ -270,16 +270,16 @@
                     </div>
                 </td>
             `;
-            
+
             tbody.appendChild(row);
         });
     }
-    
+
     function restartService(serviceId, serviceName) {
         if (!confirm(`Are you sure you want to restart the service "${serviceName}"?`)) {
             return;
         }
-        
+
         fetch(`/services/${serviceId}/restart/`, {
             method: 'POST',
             headers: {
@@ -299,22 +299,22 @@
             console.error('Error:', error);
         });
     }
-    
+
     function showScaleModal(serviceId, serviceName, currentReplicas) {
         currentServiceId = serviceId;
         document.getElementById('serviceNameDisplay').value = serviceName;
         document.getElementById('replicasInput').value = currentReplicas;
         scaleModal.show();
     }
-    
+
     function scaleService() {
         const replicas = parseInt(document.getElementById('replicasInput').value);
-        
+
         if (isNaN(replicas) || replicas < 0) {
             showToast('Please enter a valid number of replicas', 'warning');
             return;
         }
-        
+
         fetch(`/services/${currentServiceId}/scale/`, {
             method: 'POST',
             headers: {
@@ -338,12 +338,12 @@
             console.error('Error:', error);
         });
     }
-    
+
     function removeService(serviceId, serviceName) {
         if (!confirm(`Are you sure you want to remove the service "${serviceName}"? This action cannot be undone.`)) {
             return;
         }
-        
+
         fetch(`/services/${serviceId}/remove/`, {
             method: 'POST',
             headers: {

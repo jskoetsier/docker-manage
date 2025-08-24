@@ -170,7 +170,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -220,7 +220,7 @@
             updateNodesTable(data.data);
         }
     }
-    
+
     function refreshNodes() {
         if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({'type': 'get_nodes'}));
@@ -228,19 +228,19 @@
             location.reload();
         }
     }
-    
+
     function updateNodesTable(nodes) {
         const tbody = document.querySelector('#nodes-table tbody');
         if (!tbody) return;
-        
+
         tbody.innerHTML = '';
         nodes.forEach(node => {
             const row = document.createElement('tr');
             row.setAttribute('data-node-id', node.id);
-            
+
             let roleIcon = '';
             let roleBadge = '';
-            
+
             if (node.leader) {
                 roleIcon = '<i class="bi bi-star-fill text-warning me-2" title="Leader"></i>';
                 roleBadge = '<span class="badge bg-primary">Manager</span><br><span class="badge bg-warning">Leader</span>';
@@ -251,7 +251,7 @@
                 roleIcon = '<i class="bi bi-circle text-muted me-2" title="Worker"></i>';
                 roleBadge = '<span class="badge bg-secondary">Worker</span>';
             }
-            
+
             let statusBadge = '';
             if (node.status === 'ready') {
                 statusBadge = '<span class="badge bg-success">Ready</span>';
@@ -260,7 +260,7 @@
             } else {
                 statusBadge = `<span class="badge bg-warning">${node.status.charAt(0).toUpperCase() + node.status.slice(1)}</span>`;
             }
-            
+
             let availabilityBadge = '';
             if (node.availability === 'active') {
                 availabilityBadge = '<span class="badge bg-success">Active</span>';
@@ -269,10 +269,10 @@
             } else {
                 availabilityBadge = `<span class="badge bg-secondary">${node.availability.charAt(0).toUpperCase() + node.availability.slice(1)}</span>`;
             }
-            
-            const managerAddr = node.manager_addr ? 
+
+            const managerAddr = node.manager_addr ?
                 `<br><small class="text-info">${node.manager_addr}</small>` : '';
-            
+
             row.innerHTML = `
                 <td>
                     <div class="d-flex align-items-center">
@@ -305,7 +305,7 @@
                     <small class="text-muted">${node.architecture}</small>
                 </td>
             `;
-            
+
             tbody.appendChild(row);
         });
     }

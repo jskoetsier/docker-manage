@@ -36,10 +36,10 @@
                         <dl class="row">
                             <dt class="col-sm-4">Service ID:</dt>
                             <dd class="col-sm-8"><code>{{ service.ID|truncatechars:12 }}</code></dd>
-                            
+
                             <dt class="col-sm-4">Image:</dt>
                             <dd class="col-sm-8">{{ service.Spec.TaskTemplate.ContainerSpec.Image }}</dd>
-                            
+
                             <dt class="col-sm-4">Mode:</dt>
                             <dd class="col-sm-8">
                                 {% if service.Spec.Mode.Replicated %}
@@ -48,7 +48,7 @@
                                     <span class="badge bg-warning">Global</span>
                                 {% endif %}
                             </dd>
-                            
+
                             <dt class="col-sm-4">Replicas:</dt>
                             <dd class="col-sm-8">
                                 {% if service.Spec.Mode.Replicated %}
@@ -63,10 +63,10 @@
                         <dl class="row">
                             <dt class="col-sm-4">Created:</dt>
                             <dd class="col-sm-8">{{ service.CreatedAt|date:"M d, Y H:i" }}</dd>
-                            
+
                             <dt class="col-sm-4">Updated:</dt>
                             <dd class="col-sm-8">{{ service.UpdatedAt|date:"M d, Y H:i" }}</dd>
-                            
+
                             <dt class="col-sm-4">Version:</dt>
                             <dd class="col-sm-8">{{ service.Version.Index }}</dd>
                         </dl>
@@ -75,7 +75,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -279,20 +279,20 @@
 <script>
     let currentServiceId = null;
     let scaleModal = null;
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         scaleModal = new bootstrap.Modal(document.getElementById('scaleModal'));
     });
-    
+
     function refreshServiceDetails() {
         location.reload();
     }
-    
+
     function restartService(serviceId, serviceName) {
         if (!confirm(`Are you sure you want to restart the service "${serviceName}"?`)) {
             return;
         }
-        
+
         fetch(`/services/${serviceId}/restart/`, {
             method: 'POST',
             headers: {
@@ -313,22 +313,22 @@
             console.error('Error:', error);
         });
     }
-    
+
     function showScaleModal(serviceId, serviceName, currentReplicas) {
         currentServiceId = serviceId;
         document.getElementById('serviceNameDisplay').value = serviceName;
         document.getElementById('replicasInput').value = currentReplicas;
         scaleModal.show();
     }
-    
+
     function scaleService() {
         const replicas = parseInt(document.getElementById('replicasInput').value);
-        
+
         if (isNaN(replicas) || replicas < 0) {
             showToast('Please enter a valid number of replicas', 'warning');
             return;
         }
-        
+
         fetch(`/services/${currentServiceId}/scale/`, {
             method: 'POST',
             headers: {
@@ -353,12 +353,12 @@
             console.error('Error:', error);
         });
     }
-    
+
     function removeService(serviceId, serviceName) {
         if (!confirm(`Are you sure you want to remove the service "${serviceName}"? This action cannot be undone.`)) {
             return;
         }
-        
+
         fetch(`/services/${serviceId}/remove/`, {
             method: 'POST',
             headers: {

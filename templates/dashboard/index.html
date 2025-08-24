@@ -30,7 +30,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card metric-card h-100 border-info">
             <div class="card-body text-center">
@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card metric-card h-100 border-success">
             <div class="card-body text-center">
@@ -60,7 +60,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card metric-card h-100 border-warning">
             <div class="card-body text-center">
@@ -94,10 +94,10 @@
                         <dl class="row">
                             <dt class="col-sm-4">Node ID:</dt>
                             <dd class="col-sm-8"><code>{{ swarm_info.node_id|truncatechars:12 }}</code></dd>
-                            
+
                             <dt class="col-sm-4">Node Address:</dt>
                             <dd class="col-sm-8">{{ swarm_info.node_addr|default:"N/A" }}</dd>
-                            
+
                             <dt class="col-sm-4">Managers:</dt>
                             <dd class="col-sm-8">{{ swarm_info.managers|default:0 }}</dd>
                         </dl>
@@ -106,7 +106,7 @@
                         <dl class="row">
                             <dt class="col-sm-4">Total Nodes:</dt>
                             <dd class="col-sm-8">{{ swarm_info.nodes|default:0 }}</dd>
-                            
+
                             <dt class="col-sm-4">Cluster ID:</dt>
                             <dd class="col-sm-8">
                                 {% if swarm_info.cluster_id %}
@@ -115,7 +115,7 @@
                                     N/A
                                 {% endif %}
                             </dd>
-                            
+
                             <dt class="col-sm-4">Control Available:</dt>
                             <dd class="col-sm-8">
                                 {% if swarm_info.control_available %}
@@ -130,7 +130,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -143,7 +143,7 @@
                 <dl class="row">
                     <dt class="col-sm-4">CPU Cores:</dt>
                     <dd class="col-sm-8">{{ system_info.cpus|default:0 }}</dd>
-                    
+
                     <dt class="col-sm-4">Memory:</dt>
                     <dd class="col-sm-8" id="total-memory">
                         {% if system_info.memory %}
@@ -152,10 +152,10 @@
                             N/A
                         {% endif %}
                     </dd>
-                    
+
                     <dt class="col-sm-4">Docker Version:</dt>
                     <dd class="col-sm-8">{{ system_info.server_version|default:"N/A" }}</dd>
-                    
+
                     <dt class="col-sm-4">OS:</dt>
                     <dd class="col-sm-8">{{ system_info.operating_system|default:"N/A" }}</dd>
                 </dl>
@@ -234,7 +234,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -292,29 +292,29 @@
             updateSystemInfo(data.data);
         }
     }
-    
+
     function updateServicesCount(count) {
         document.getElementById('services-count').textContent = count;
     }
-    
+
     function updateNodesCount(count) {
         document.getElementById('nodes-count').textContent = count;
     }
-    
+
     function updateSystemInfo(data) {
         if (data.system_info && data.system_info.containers_running !== undefined) {
             document.getElementById('containers-count').textContent = data.system_info.containers_running;
         }
     }
-    
+
     function updateServicesTable(services) {
         const tbody = document.querySelector('#services-table tbody');
         if (!tbody) return;
-        
+
         tbody.innerHTML = '';
         services.slice(0, 5).forEach(service => {
             const row = document.createElement('tr');
-            
+
             let statusBadge, statusDot;
             if (service.running_tasks === service.total_tasks && service.total_tasks > 0) {
                 statusBadge = '<span class="badge bg-success">Running</span>';
@@ -326,7 +326,7 @@
                 statusBadge = '<span class="badge bg-secondary">Stopped</span>';
                 statusDot = '<span class="service-status status-stopped"></span>';
             }
-            
+
             row.innerHTML = `
                 <td>
                     <i class="bi bi-gear text-muted me-2"></i>
@@ -345,24 +345,24 @@
                     ${statusBadge}
                 </td>
             `;
-            
+
             tbody.appendChild(row);
         });
     }
-    
+
     function updateNodesList(nodes) {
         const nodesList = document.getElementById('nodes-list');
         if (!nodesList) return;
-        
+
         nodesList.innerHTML = '';
         nodes.forEach(node => {
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'd-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded';
-            
-            const statusBadge = node.status === 'ready' ? 
-                '<span class="badge bg-success">Ready</span>' : 
+
+            const statusBadge = node.status === 'ready' ?
+                '<span class="badge bg-success">Ready</span>' :
                 `<span class="badge bg-danger">${node.status.charAt(0).toUpperCase() + node.status.slice(1)}</span>`;
-            
+
             nodeDiv.innerHTML = `
                 <div>
                     <div class="fw-bold">${node.hostname}</div>
@@ -374,7 +374,7 @@
                     <small class="text-muted">${node.availability.charAt(0).toUpperCase() + node.availability.slice(1)}</small>
                 </div>
             `;
-            
+
             nodesList.appendChild(nodeDiv);
         });
     }

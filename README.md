@@ -356,7 +356,7 @@ For support and questions:
 This project includes comprehensive documentation:
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Detailed version history and changes
-- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans  
+- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview and architecture
 
 ## Version History

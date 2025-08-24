@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-people me-2"></i>
+        User Management
+    </h1>
+    <a href="{% url 'register' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i>
+        Add User
+    </a>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <div class="flex-grow-1">
+                <input type="text" class="form-control" name="q" value="{{ query }}" placeholder="Search users...">
+            </div>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+                Search
+            </button>
+            {% if query %}
+                <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i>
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            Users ({{ total_users }} total)
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Activity</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <a href="{% url 'user_detail' user.id %}" class="text-decoration-none">
+                                                {{ user.username }}
+                                            </a>
+                                        </div>
+                                        <small class="text-muted">
+                                            {% if user.get_full_name %}
+                                                {{ user.get_full_name }}
+                                            {% else %}
+                                                {{ user.email|default:"No email" }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if user.role == 'admin' %}
+                                    <span class="badge bg-danger">{{ user.get_role_display }}</span>
+                                {% elif user.role == 'manager' %}
+                                    <span class="badge bg-warning">{{ user.get_role_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ user.get_role_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                                {% if user.is_api_enabled %}
+                                    <span class="badge bg-primary ms-1">API</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ user.last_activity|date:"M d, Y H:i" }}</small>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ user.date_joined|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'user_detail' user.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                        View
+                                    </a>
+                                    <a href="{% url 'user_edit' user.id %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                        Edit
+                                    </a>
+                                    {% if user != request.user %}
+                                        <a href="{% url 'user_delete' user.id %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Users pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people display-4 text-muted"></i>
+                <h3 class="mt-3 text-muted">No Users Found</h3>
+                {% if query %}
+                    <p class="text-muted">No users match your search criteria.</p>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-primary">Clear Search</a>
+                {% else %}
+                    <p class="text-muted">Get started by creating your first user.</p>
+                    <a href="{% url 'register' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Add User
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}

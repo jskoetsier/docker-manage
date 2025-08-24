@@ -180,7 +180,7 @@ python manage.py runserver 0.0.0.0:8000
 
 ### REST API
 - `GET /api/services/` - List all services
-- `GET /api/nodes/` - List all nodes  
+- `GET /api/nodes/` - List all nodes
 - `GET /api/system/` - Get system information
 - `POST /api/services/create/` - Create new service
 - `POST /services/<id>/restart/` - Restart service
@@ -203,7 +203,7 @@ REDIS_URL=redis://localhost:6379/0
 
 ### Dependencies (`requirements.txt`)
 - Django 4.2.7
-- docker 6.1.3  
+- docker 6.1.3
 - channels 4.0.0
 - redis 5.0.1
 - Bootstrap integration packages
@@ -246,11 +246,11 @@ The project includes:
 
 This Docker Swarm Manager provides a complete web-based solution for managing Docker Swarm clusters on Ubuntu 24.04. It successfully implements all requested features:
 
-✅ **Monitor Docker Swarm cluster status**  
-✅ **Deploy containers in Docker Swarm environment**  
-✅ **Web UI based on Django and Bootstrap**  
-✅ **Start, restart, stop containers**  
-✅ **Monitor health of containers**  
+✅ **Monitor Docker Swarm cluster status**
+✅ **Deploy containers in Docker Swarm environment**
+✅ **Web UI based on Django and Bootstrap**
+✅ **Start, restart, stop containers**
+✅ **Monitor health of containers**
 ✅ **Runs on Ubuntu 24.04**
 
 The application is production-ready with proper error handling, security measures, and deployment options. The modular architecture makes it easy to extend and customize for specific requirements.

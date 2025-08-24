@@ -9,16 +9,19 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from accounts.decorators import role_required, permission_required, audit_action, service_permission_required
 from .docker_utils import DockerSwarmManager
 
 
-class DashboardView(TemplateView):
+class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard/index.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         docker_manager = DockerSwarmManager()
-        
+
         context.update({
             'swarm_active': docker_manager.is_swarm_active(),
             'swarm_info': docker_manager.get_swarm_info(),
@@ -26,31 +29,32 @@ class DashboardView(TemplateView):
             'nodes': docker_manager.get_nodes(),
             'services': docker_manager.get_services(),
         })
-        
+
         return context
 
 
+@login_required
 def services_view(request):
     """Services management view"""
     docker_manager = DockerSwarmManager()
-    
+
     context = {
         'services': docker_manager.get_services(),
         'swarm_active': docker_manager.is_swarm_active(),
     }
-    
+
     return render(request, 'dashboard/services.html', context)
 
 
 def nodes_view(request):
     """Nodes management view"""
     docker_manager = DockerSwarmManager()
-    
+
     context = {
         'nodes': docker_manager.get_nodes(),
         'swarm_active': docker_manager.is_swarm_active(),
     }
-    
+
     return render(request, 'dashboard/nodes.html', context)
 
 
@@ -58,16 +62,16 @@ def service_detail_view(request, service_id):
     """Service detail view"""
     docker_manager = DockerSwarmManager()
     service_details = docker_manager.get_service_details(service_id)
-    
+
     if not service_details:
         messages.error(request, "Service not found")
         return redirect('services')
-    
+
     context = {
         'service': service_details['service'],
         'tasks': service_details['tasks'],
     }
-    
+
     return render(request, 'dashboard/service_detail.html', context)
 
 
@@ -76,7 +80,7 @@ def service_detail_view(request, service_id):
 def restart_service(request, service_id):
     """Restart a service"""
     docker_manager = DockerSwarmManager()
-    
+
     if docker_manager.restart_service(service_id):
         return JsonResponse({'status': 'success', 'message': 'Service restarted successfully'})
     else:
@@ -90,9 +94,9 @@ def scale_service(request, service_id):
     try:
         data = json.loads(request.body)
         replicas = int(data.get('replicas', 1))
-        
+
         docker_manager = DockerSwarmManager()
-        
+
         if docker_manager.scale_service(service_id, replicas):
             return JsonResponse({'status': 'success', 'message': f'Service scaled to {replicas} replicas'})
         else:
@@ -106,7 +110,7 @@ def scale_service(request, service_id):
 def remove_service(request, service_id):
     """Remove a service"""
     docker_manager = DockerSwarmManager()
-    
+
     if docker_manager.remove_service(service_id):
         return JsonResponse({'status': 'success', 'message': 'Service removed successfully'})
     else:
@@ -119,16 +123,16 @@ def create_service(request):
     """Create a new service"""
     try:
         data = json.loads(request.body)
-        
+
         image = data.get('image')
         name = data.get('name')
         replicas = int(data.get('replicas', 1))
-        
+
         if not image or not name:
             return JsonResponse({'status': 'error', 'message': 'Image and name are required'}, status=400)
-        
+
         docker_manager = DockerSwarmManager()
-        
+
         # Prepare additional arguments
         kwargs = {}
         if data.get('ports'):
@@ -137,7 +141,7 @@ def create_service(request):
             kwargs['env'] = data['env']
         if data.get('labels'):
             kwargs['labels'] = data['labels']
-        
+
         if docker_manager.create_service(image, name, replicas, **kwargs):
             return JsonResponse({'status': 'success', 'message': 'Service created successfully'})
         else:
@@ -165,7 +169,7 @@ def api_system_info(request):
     docker_manager = DockerSwarmManager()
     system_info = docker_manager.get_system_info()
     swarm_info = docker_manager.get_swarm_info()
-    
+
     return JsonResponse({
         'system_info': system_info,
         'swarm_info': swarm_info,
@@ -180,13 +184,13 @@ def create_service_view(request):
             image = request.POST.get('image')
             name = request.POST.get('name')
             replicas = int(request.POST.get('replicas', 1))
-            
+
             if not image or not name:
                 messages.error(request, 'Image and name are required')
                 return render(request, 'dashboard/create_service.html')
-            
+
             docker_manager = DockerSwarmManager()
-            
+
             # Prepare additional arguments
             kwargs = {}
             if request.POST.get('ports'):
@@ -195,7 +199,7 @@ def create_service_view(request):
                     kwargs['ports'] = ports
                 except json.JSONDecodeError:
                     pass
-            
+
             if request.POST.get('env'):
                 env_vars = {}
                 for line in request.POST.get('env').split('\n'):
@@ -204,7 +208,7 @@ def create_service_view(request):
                         env_vars[key.strip()] = value.strip()
                 if env_vars:
                     kwargs['env'] = env_vars
-            
+
             if docker_manager.create_service(image, name, replicas, **kwargs):
                 messages.success(request, f'Service "{name}" created successfully')
                 return redirect('services')
@@ -214,5 +218,5 @@ def create_service_view(request):
             messages.error(request, 'Invalid replicas number')
         except Exception as e:
             messages.error(request, f'Error creating service: {str(e)}')
-    
+
     return render(request, 'dashboard/create_service.html')

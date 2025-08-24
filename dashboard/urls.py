@@ -7,7 +7,7 @@ from . import views
 urlpatterns = [
     # Main dashboard
     path('', views.DashboardView.as_view(), name='dashboard'),
-    
+
     # Services
     path('services/', views.services_view, name='services'),
     path('services/create/', views.create_service_view, name='create_service'),
@@ -15,10 +15,10 @@ urlpatterns = [
     path('services/<str:service_id>/restart/', views.restart_service, name='restart_service'),
     path('services/<str:service_id>/scale/', views.scale_service, name='scale_service'),
     path('services/<str:service_id>/remove/', views.remove_service, name='remove_service'),
-    
+
     # Nodes
     path('nodes/', views.nodes_view, name='nodes'),
-    
+
     # API endpoints
     path('api/services/', views.api_services, name='api_services'),
     path('api/nodes/', views.api_nodes, name='api_nodes'),

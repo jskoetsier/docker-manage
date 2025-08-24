@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-person-circle me-2"></i>
+        My Profile
+    </h1>
+    <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+        <i class="bi bi-pencil"></i>
+        Edit Profile
+    </a>
+</div>
+
+<div class="row">
+    <!-- Profile Information -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Profile Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Username:</dt>
+                            <dd class="col-sm-8">{{ user.username }}</dd>
+                            
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">{{ user.email|default:"Not provided" }}</dd>
+                            
+                            <dt class="col-sm-4">Full Name:</dt>
+                            <dd class="col-sm-8">
+                                {% if user.get_full_name %}
+                                    {{ user.get_full_name }}
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Role:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-primary">{{ user.get_role_display }}</span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Member Since:</dt>
+                            <dd class="col-sm-8">{{ user.date_joined|date:"M d, Y" }}</dd>
+                            
+                            <dt class="col-sm-4">Last Activity:</dt>
+                            <dd class="col-sm-8">{{ user.last_activity|date:"M d, Y H:i" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history"></i>
+                    Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Resource</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ log.get_action_display }}</span>
+                                    </td>
+                                    <td>{{ log.resource|truncatechars:50 }}</td>
+                                    <td>
+                                        <small class="text-muted">{{ log.timestamp|date:"M d, H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if log.success %}
+                                            <i class="bi bi-check-circle text-success"></i>
+                                        {% else %}
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-clock-history display-4"></i>
+                        <p class="mt-2">No recent activity</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- API Keys -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-key"></i>
+                    API Keys
+                </h5>
+                {% if user.is_api_enabled %}
+                    <a href="{% url 'api_key_create' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus"></i>
+                        New
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if user.is_api_enabled %}
+                    {% if api_keys %}
+                        {% for api_key in api_keys %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                <div>
+                                    <div class="fw-bold">{{ api_key.name }}</div>
+                                    <small class="text-muted">Created {{ api_key.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <div>
+                                    {% if api_key.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <a href="{% url 'api_key_list' %}" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                            View All API Keys
+                        </a>
+                    {% else %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="bi bi-key display-6"></i>
+                            <p class="mt-2 mb-2">No API keys</p>
+                            <a href="{% url 'api_key_create' %}" class="btn btn-outline-primary btn-sm">
+                                Create First API Key
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-lock display-6"></i>
+                        <p class="mt-2">API access is not enabled for your account</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-laptop"></i>
+                    Active Sessions
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if active_sessions %}
+                    {% for session in active_sessions %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                            <div>
+                                <div class="fw-bold">{{ session.ip_address }}</div>
+                                <small class="text-muted">Last activity: {{ session.last_activity|date:"M d, H:i" }}</small>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm" 
+                                    onclick="terminateSession({{ session.id }})">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-laptop display-6"></i>
+                        <p class="mt-2">No active sessions</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function terminateSession(sessionId) {
+        if (!confirm('Are you sure you want to terminate this session?')) {
+            return;
+        }
+        
+        fetch(`/accounts/sessions/${sessionId}/terminate/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                location.reload();
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error terminating session', 'danger');
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}

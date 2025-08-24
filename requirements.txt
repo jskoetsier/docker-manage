@@ -12,3 +12,7 @@ channels-redis==4.1.0
 gunicorn==21.2.0
 whitenoise==6.6.0
 python-dotenv==1.0.0
+djangorestframework==3.14.0
+django-allauth==0.57.0
+django-guardian==2.4.0
+django-extensions==3.2.3
