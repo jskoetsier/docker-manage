@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Docker Compose Stacks - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-stack me-2"></i>
+        Docker Compose Stacks
+    </h1>
+    <div class="btn-group">
+        <a href="{% url 'import_compose' %}" class="btn btn-primary">
+            <i class="bi bi-cloud-download"></i>
+            Import from Git
+        </a>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createStackModal">
+            <i class="bi bi-plus-circle"></i>
+            Create Stack
+        </button>
+    </div>
+</div>
+
+<!-- Stacks Grid -->
+<div class="row">
+    {% for stack in stacks %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ stack.name }}</h5>
+                <span class="badge bg-{% if stack.status == 'deployed' %}success{% elif stack.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                    {{ stack.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                {% if stack.description %}
+                    <p class="card-text text-muted">{{ stack.description|truncatechars:100 }}</p>
+                {% endif %}
+                
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="fw-bold text-primary">{{ stack.services_count }}</div>
+                        <small class="text-muted">Services</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-info">{{ stack.networks_list|length }}</div>
+                        <small class="text-muted">Networks</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-warning">{{ stack.volumes_list|length }}</div>
+                        <small class="text-muted">Volumes</small>
+                    </div>
+                </div>
+                
+                {% if stack.source_repository %}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-git"></i>
+                            Source: <a href="{{ stack.source_repository }}" target="_blank" class="text-decoration-none">
+                                {{ stack.source_repository|truncatechars:30 }}
+                            </a>
+                        </small>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        Created by {{ stack.created_by.username }} on {{ stack.created_at|date:"M d, Y" }}
+                    </small>
+                    {% if stack.last_deployed %}
+                        <br>
+                        <small class="text-muted">
+                            Last deployed: {{ stack.last_deployed|date:"M d, H:i" }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'stack_detail' stack.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i>
+                            View
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="editStack({{ stack.id }})">
+                            <i class="bi bi-pencil"></i>
+                            Edit
+                        </button>
+                        {% if stack.status != 'deployed' %}
+                            <button class="btn btn-outline-success btn-sm" onclick="deployStack({{ stack.id }})">
+                                <i class="bi bi-cloud-upload"></i>
+                                Deploy
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteStack({{ stack.id }}, '{{ stack.name }}')">
+                        <i class="bi bi-trash"></i>
+                        Delete Stack
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-stack display-4 text-muted"></i>
+            <h3 class="mt-3 text-muted">No Docker Compose Stacks</h3>
+            <p class="text-muted">Import compose files from Git repositories or create custom stacks.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'import_compose' %}" class="btn btn-primary">
+                    <i class="bi bi-cloud-download"></i>
+                    Import from Git
+                </a>
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createStackModal">
+                    <i class="bi bi-plus-circle"></i>
+                    Create Stack
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Create Stack Modal -->
+<div class="modal fade" id="createStackModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Docker Compose Stack</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'create_stack' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="stack_name" class="form-label">Stack Name</label>
+                        <input type="text" class="form-control" id="stack_name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="stack_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="stack_description" name="description" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="compose_content" class="form-label">Docker Compose Content</label>
+                        <textarea class="form-control" id="compose_content" name="compose_content" rows="15" 
+                                  style="font-family: monospace;" placeholder="version: '3.8'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - '80:80'"></textarea>
+                        <div class="form-text">Paste your Docker Compose YAML content here</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Stack</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function editStack(stackId) {
+        window.location.href = `/stacks/${stackId}/edit/`;
+    }
+    
+    function deployStack(stackId) {
+        if (!confirm('Are you sure you want to deploy this stack? This will create services in your Docker Swarm.')) {
+            return;
+        }
+        
+        window.location.href = `/stacks/${stackId}/deploy/`;
+    }
+    
+    function deleteStack(stackId, stackName) {
+        if (!confirm(`Are you sure you want to delete the stack "${stackName}"? This action cannot be undone.`)) {
+            return;
+        }
+        
+        fetch(`/stacks/${stackId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                location.reload();
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error deleting stack', 'danger');
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}

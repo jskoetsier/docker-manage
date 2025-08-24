@@ -86,6 +86,10 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
+                    <a href="{% url 'service_logs' service.ID %}" class="btn btn-outline-success">
+                        <i class="bi bi-file-text"></i>
+                        View Logs
+                    </a>
                     <button class="btn btn-outline-primary" onclick="restartService('{{ service.ID }}', '{{ service.Spec.Name }}')">
                         <i class="bi bi-arrow-clockwise"></i>
                         Restart Service

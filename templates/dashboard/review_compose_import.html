@@ -237,10 +237,16 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-cloud-upload"></i>
-                        Deploy Selected Services
-                    </button>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'save_compose_stack' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-save"></i>
+                            Save as Stack
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-cloud-upload"></i>
+                            Deploy Selected Services
+                        </button>
+                    </div>
                 </div>
             {% else %}
                 <div class="text-center py-5">
