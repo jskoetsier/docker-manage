@@ -4,7 +4,7 @@ from .models import ServiceGroup, ComposeStack
 
 class ServiceGroupForm(forms.ModelForm):
     """Form for creating/editing service groups"""
-    
+
     class Meta:
         model = ServiceGroup
         fields = ['name', 'description', 'color', 'icon']
@@ -25,7 +25,7 @@ class ServiceGroupForm(forms.ModelForm):
                 ('bi-database', 'Database'),
             ], attrs={'class': 'form-select'})
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
@@ -36,7 +36,7 @@ class ServiceGroupForm(forms.ModelForm):
 
 class ComposeStackForm(forms.ModelForm):
     """Form for creating/editing Docker Compose stacks"""
-    
+
     class Meta:
         model = ComposeStack
         fields = ['name', 'description', 'compose_content']
@@ -45,7 +45,7 @@ class ComposeStackForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Optional description'}),
             'compose_content': forms.Textarea(attrs={'class': 'form-control', 'rows': 20, 'style': 'font-family: monospace;'})
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
@@ -55,7 +55,7 @@ class ComposeStackForm(forms.ModelForm):
 
 class LogFilterForm(forms.Form):
     """Form for filtering service logs"""
-    
+
     LEVEL_CHOICES = [
         ('', 'All Levels'),
         ('debug', 'Debug'),
@@ -64,14 +64,14 @@ class LogFilterForm(forms.Form):
         ('error', 'Error'),
         ('critical', 'Critical'),
     ]
-    
+
     lines = forms.IntegerField(
         initial=100,
         min_value=10,
         max_value=1000,
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
-    
+
     since = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -79,13 +79,13 @@ class LogFilterForm(forms.Form):
             'placeholder': '2023-01-01T00:00:00Z or 1h or 30m'
         })
     )
-    
+
     level = forms.ChoiceField(
         choices=LEVEL_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-    
+
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -93,7 +93,7 @@ class LogFilterForm(forms.Form):
             'placeholder': 'Search in log messages'
         })
     )
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['lines'].help_text = 'Number of recent log lines to display (10-1000)'

@@ -35,7 +35,7 @@
                 {% if stack.description %}
                     <p class="card-text text-muted">{{ stack.description|truncatechars:100 }}</p>
                 {% endif %}
-                
+
                 <div class="row text-center mb-3">
                     <div class="col-4">
                         <div class="fw-bold text-primary">{{ stack.services_count }}</div>
@@ -50,7 +50,7 @@
                         <small class="text-muted">Volumes</small>
                     </div>
                 </div>
-                
+
                 {% if stack.source_repository %}
                     <div class="mb-2">
                         <small class="text-muted">
@@ -61,7 +61,7 @@
                         </small>
                     </div>
                 {% endif %}
-                
+
                 <div class="mb-3">
                     <small class="text-muted">
                         Created by {{ stack.created_by.username }} on {{ stack.created_at|date:"M d, Y" }}
@@ -73,7 +73,7 @@
                         </small>
                     {% endif %}
                 </div>
-                
+
                 <div class="d-grid gap-2">
                     <div class="btn-group" role="group">
                         <a href="{% url 'stack_detail' stack.id %}" class="btn btn-outline-primary btn-sm">
@@ -91,7 +91,7 @@
                             </button>
                         {% endif %}
                     </div>
-                    
+
                     <button class="btn btn-outline-danger btn-sm" onclick="deleteStack({{ stack.id }}, '{{ stack.name }}')">
                         <i class="bi bi-trash"></i>
                         Delete Stack
@@ -136,15 +136,15 @@
                         <label for="stack_name" class="form-label">Stack Name</label>
                         <input type="text" class="form-control" id="stack_name" name="name" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="stack_description" class="form-label">Description</label>
                         <textarea class="form-control" id="stack_description" name="description" rows="2"></textarea>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="compose_content" class="form-label">Docker Compose Content</label>
-                        <textarea class="form-control" id="compose_content" name="compose_content" rows="15" 
+                        <textarea class="form-control" id="compose_content" name="compose_content" rows="15"
                                   style="font-family: monospace;" placeholder="version: '3.8'
 services:
   web:
@@ -169,20 +169,20 @@ services:
     function editStack(stackId) {
         window.location.href = `/stacks/${stackId}/edit/`;
     }
-    
+
     function deployStack(stackId) {
         if (!confirm('Are you sure you want to deploy this stack? This will create services in your Docker Swarm.')) {
             return;
         }
-        
+
         window.location.href = `/stacks/${stackId}/deploy/`;
     }
-    
+
     function deleteStack(stackId, stackName) {
         if (!confirm(`Are you sure you want to delete the stack "${stackName}"? This action cannot be undone.`)) {
             return;
         }
-        
+
         fetch(`/stacks/${stackId}/delete/`, {
             method: 'POST',
             headers: {

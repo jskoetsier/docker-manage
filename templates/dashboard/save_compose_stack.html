@@ -43,7 +43,7 @@
                             <span class="text-muted">Manual import</span>
                         {% endif %}
                     </dd>
-                    
+
                     <dt class="col-sm-5">Branch:</dt>
                     <dd class="col-sm-7">
                         {% if metadata.branch %}
@@ -58,10 +58,10 @@
                 <dl class="row">
                     <dt class="col-sm-5">Services:</dt>
                     <dd class="col-sm-7"><span class="badge bg-primary">{{ services_count }}</span></dd>
-                    
+
                     <dt class="col-sm-5">Networks:</dt>
                     <dd class="col-sm-7"><span class="badge bg-info">{{ metadata.networks|length }}</span></dd>
-                    
+
                     <dt class="col-sm-5">Volumes:</dt>
                     <dd class="col-sm-7"><span class="badge bg-warning">{{ metadata.volumes|length }}</span></dd>
                 </dl>
@@ -81,21 +81,21 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            
+
             <div class="mb-4">
                 <label for="stack_name" class="form-label">Stack Name *</label>
                 <input type="text" class="form-control" id="stack_name" name="stack_name" required
                        placeholder="Enter a unique name for this stack">
                 <div class="form-text">Choose a descriptive name that will help you identify this stack later</div>
             </div>
-            
+
             <div class="mb-4">
                 <label for="description" class="form-label">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="3"
                           placeholder="Optional description of what this stack contains and its purpose"></textarea>
                 <div class="form-text">Describe the purpose and contents of this stack</div>
             </div>
-            
+
             <div class="alert alert-info">
                 <h6 class="alert-heading">
                     <i class="bi bi-lightbulb"></i>
@@ -108,7 +108,7 @@
                     <li>You can deploy the stack multiple times or make changes as needed</li>
                 </ul>
             </div>
-            
+
             <div class="d-flex justify-content-end gap-2 mt-4">
                 <a href="{% url 'review_compose_import' %}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
@@ -127,49 +127,49 @@
     document.addEventListener('DOMContentLoaded', function() {
         const repoUrl = "{{ metadata.repository_url }}";
         const nameInput = document.getElementById('stack_name');
-        
+
         if (repoUrl && !nameInput.value) {
             // Extract repository name from URL
             const urlParts = repoUrl.split('/');
             let repoName = urlParts[urlParts.length - 1];
-            
+
             // Remove .git extension if present
             if (repoName.endsWith('.git')) {
                 repoName = repoName.slice(0, -4);
             }
-            
+
             // Clean up the name
             repoName = repoName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
-            
+
             // Add timestamp for uniqueness
             const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
             nameInput.value = `${repoName}-${timestamp}`;
         }
     });
-    
+
     // Form validation
     document.querySelector('form').addEventListener('submit', function(e) {
         const stackName = document.getElementById('stack_name').value.trim();
-        
+
         if (!stackName) {
             e.preventDefault();
             showToast('Stack name is required', 'warning');
             return;
         }
-        
+
         // Check for valid characters
         if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(stackName)) {
             e.preventDefault();
             showToast('Stack name can only contain letters, numbers, hyphens, and underscores, and must start with a letter or number', 'warning');
             return;
         }
-        
+
         // Show loading state
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving Stack...';
         submitBtn.disabled = true;
-        
+
         // Re-enable button after 30 seconds (timeout protection)
         setTimeout(() => {
             submitBtn.innerHTML = originalText;

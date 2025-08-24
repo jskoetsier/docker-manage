@@ -180,7 +180,7 @@ To use this application, you need a Docker Swarm cluster:
    ```bash
    # On manager node, get join token:
    docker swarm join-token worker
-   
+
    # On worker nodes, run the provided command
    docker swarm join --token <token> <manager-ip>:2377
    ```
@@ -280,7 +280,7 @@ For production, use a reverse proxy like Nginx:
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -288,7 +288,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /ws/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -317,7 +317,7 @@ server {
    ```bash
    # Check Docker is running
    sudo systemctl status docker
-   
+
    # Check user permissions
    groups $USER  # Should include 'docker'
    ```
@@ -326,7 +326,7 @@ server {
    ```bash
    # Check Redis is running
    sudo systemctl status redis-server
-   
+
    # Test Redis connection
    redis-cli ping
    ```
@@ -335,7 +335,7 @@ server {
    ```bash
    # Install Git
    sudo apt-get install git
-   
+
    # Verify installation
    git --version
    ```
@@ -349,7 +349,7 @@ server {
    ```bash
    # Fix file permissions
    sudo chown -R $USER:$USER /path/to/project
-   
+
    # Add user to docker group
    sudo usermod -aG docker $USER
    ```
@@ -408,7 +408,7 @@ python manage.py test_compose_import https://github.com/docker/awesome-compose -
 This project includes comprehensive documentation:
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Detailed version history and changes
-- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans  
+- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview and architecture
 
 ## Version History

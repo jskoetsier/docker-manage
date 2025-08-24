@@ -423,24 +423,24 @@ def clear_compose_import_view(request):
 def service_logs_view(request, service_id):
     """View logs for a specific service"""
     from django.shortcuts import get_object_or_404
-    
+
     docker_manager = DockerSwarmManager()
-    
+
     lines = int(request.GET.get('lines', 100))
     since = request.GET.get('since', '')
-    
+
     # Get service details
     service_details = docker_manager.get_service_details(service_id)
     if not service_details:
         messages.error(request, "Service not found")
         return redirect('services')
-    
+
     # Get service logs
     logs_data = docker_manager.get_service_logs(service_id, lines=lines, since=since or None)
-    
+
     # Get service tasks with containers
     tasks = docker_manager.get_service_tasks_with_containers(service_id)
-    
+
     context = {
         'service': service_details['service'],
         'service_id': service_id,
@@ -449,7 +449,7 @@ def service_logs_view(request, service_id):
         'lines_requested': lines,
         'since_requested': since,
     }
-    
+
     return render(request, 'dashboard/service_logs.html', context)
 
 
@@ -457,12 +457,12 @@ def service_logs_view(request, service_id):
 def api_service_logs(request, service_id):
     """API endpoint for service logs"""
     docker_manager = DockerSwarmManager()
-    
+
     lines = int(request.GET.get('lines', 100))
     since = request.GET.get('since', '')
-    
+
     logs_data = docker_manager.get_service_logs(service_id, lines=lines, since=since or None)
-    
+
     return JsonResponse(logs_data)
 
 
@@ -470,12 +470,12 @@ def api_service_logs(request, service_id):
 def api_container_logs(request, container_id):
     """API endpoint for container logs"""
     docker_manager = DockerSwarmManager()
-    
+
     lines = int(request.GET.get('lines', 100))
     since = request.GET.get('since', '')
-    
+
     logs_data = docker_manager.get_container_logs(container_id, lines=lines, since=since or None)
-    
+
     return JsonResponse(logs_data)
 
 
@@ -483,13 +483,13 @@ def api_container_logs(request, container_id):
 def service_groups_view(request):
     """Manage service groups"""
     from .models import ServiceGroup
-    
+
     groups = ServiceGroup.objects.all()
-    
+
     context = {
         'groups': groups,
     }
-    
+
     return render(request, 'dashboard/service_groups.html', context)
 
 
@@ -497,13 +497,13 @@ def service_groups_view(request):
 def stacks_view(request):
     """View and manage Docker Compose stacks"""
     from .models import ComposeStack
-    
+
     stacks = ComposeStack.objects.all()
-    
+
     context = {
         'stacks': stacks,
     }
-    
+
     return render(request, 'dashboard/stacks.html', context)
 
 
@@ -512,23 +512,23 @@ def save_compose_as_stack_view(request):
     """Save imported compose data as an editable stack"""
     from .models import ComposeStack
     import yaml
-    
+
     compose_data = request.session.get('compose_import')
-    
+
     if not compose_data:
         messages.error(request, 'No compose data found. Please import a compose file first.')
         return redirect('import_compose')
-    
+
     if request.method == 'POST':
         stack_name = request.POST.get('stack_name', '').strip()
         description = request.POST.get('description', '').strip()
-        
+
         if not stack_name:
             messages.error(request, 'Stack name is required')
             return render(request, 'dashboard/save_compose_stack.html', {
                 'metadata': compose_data['metadata']
             })
-        
+
         try:
             # Convert services back to compose format
             services_dict = {}
@@ -536,48 +536,48 @@ def save_compose_as_stack_view(request):
                 service_config = {
                     'image': service['image'],
                 }
-                
+
                 if service.get('replicas', 1) != 1:
                     service_config['deploy'] = {'replicas': service['replicas']}
-                
+
                 if service.get('ports'):
                     service_config['ports'] = []
                     for port in service['ports']:
                         if port.get('published_port') and port.get('target_port'):
                             service_config['ports'].append(f"{port['published_port']}:{port['target_port']}")
-                
+
                 if service.get('environment'):
                     service_config['environment'] = service['environment']
-                
+
                 if service.get('volumes'):
                     service_config['volumes'] = []
                     for vol in service['volumes']:
                         service_config['volumes'].append(f"{vol['source']}:{vol['target']}")
-                
+
                 if service.get('networks'):
                     service_config['networks'] = service['networks']
-                
+
                 services_dict[service['name']] = service_config
-            
+
             # Build complete compose structure
             compose_structure = {
                 'version': '3.8',
                 'services': services_dict
             }
-            
+
             if compose_data['metadata'].get('networks'):
                 compose_structure['networks'] = {
                     net: {} for net in compose_data['metadata']['networks']
                 }
-            
+
             if compose_data['metadata'].get('volumes'):
                 compose_structure['volumes'] = {
                     vol: {} for vol in compose_data['metadata']['volumes']
                 }
-            
+
             # Convert to YAML
             compose_yaml = yaml.dump(compose_structure, default_flow_style=False, sort_keys=False)
-            
+
             # Create stack
             stack = ComposeStack.objects.create(
                 name=stack_name,
@@ -587,21 +587,21 @@ def save_compose_as_stack_view(request):
                 source_branch=compose_data['metadata'].get('branch', ''),
                 created_by=request.user
             )
-            
+
             stack.update_metadata()
-            
+
             # Clear session data
             del request.session['compose_import']
-            
+
             messages.success(request, f'Stack "{stack_name}" saved successfully')
             return redirect('stack_detail', stack_id=stack.id)
-            
+
         except Exception as e:
             messages.error(request, f'Error saving stack: {str(e)}')
-    
+
     context = {
         'metadata': compose_data['metadata'],
         'services_count': len(compose_data['services'])
     }
-    
+
     return render(request, 'dashboard/save_compose_stack.html', context)

@@ -110,6 +110,39 @@
                         Nodes
                     </a>
                 </li>
+                  
+                <!-- Analytics Section -->
+                <li class="nav-item">
+                    <hr class="dropdown-divider text-white-50">
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}"
+                       href="{% url 'dashboard:analytics' %}">
+                        <i class="bi bi-graph-up"></i>
+                        Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'historical' in request.resolver_match.url_name %}active{% endif %}"
+                       href="{% url 'dashboard:historical_metrics' %}">
+                        <i class="bi bi-clock-history"></i>
+                        Historical Metrics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'predictive' in request.resolver_match.url_name %}active{% endif %}"
+                       href="{% url 'dashboard:predictive_analytics' %}">
+                        <i class="bi bi-crystal-ball"></i>
+                        Predictive Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'dashboards' in request.resolver_match.url_name %}active{% endif %}"
+                       href="{% url 'dashboard:custom_dashboards' %}">
+                        <i class="bi bi-layout-text-window"></i>
+                        Custom Dashboards
+                    </a>
+                </li>
                 {% if user.is_authenticated and user.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"

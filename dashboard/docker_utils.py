@@ -224,155 +224,153 @@ class DockerSwarmManager:
             logger.error(f"Error creating service {name}: {e}")
             return False
 
-    def get_service_logs(self, service_id: str, lines: int = 100, since: str = None) -> Dict:
+    def get_service_logs(
+        self, service_id: str, lines: int = 100, since: str = None
+    ) -> Dict:
         """Get logs for a specific service"""
         try:
             if not self.client:
-                return {'logs': [], 'error': 'Docker client not available'}
-            
+                return {"logs": [], "error": "Docker client not available"}
+
             service = self.client.services.get(service_id)
-            
+
             # Get service logs
-            kwargs = {
-                'stdout': True,
-                'stderr': True,
-                'timestamps': True,
-                'tail': lines
-            }
-            
+            kwargs = {"stdout": True, "stderr": True, "timestamps": True, "tail": lines}
+
             if since:
-                kwargs['since'] = since
-            
+                kwargs["since"] = since
+
             # Get logs - this returns a generator, we need to read it properly
             logs_generator = service.logs(**kwargs)
-            
+
             # Parse logs
             log_lines = []
             try:
                 # Read from the generator and decode
-                if hasattr(logs_generator, 'read'):
+                if hasattr(logs_generator, "read"):
                     # It's a file-like object
                     log_content = logs_generator.read()
-                elif hasattr(logs_generator, '__iter__'):
+                elif hasattr(logs_generator, "__iter__"):
                     # It's a generator/iterator
-                    log_content = b''.join(logs_generator)
+                    log_content = b"".join(logs_generator)
                 else:
                     # It's already bytes
                     log_content = logs_generator
-                
+
                 if log_content:
-                    log_text = log_content.decode('utf-8', errors='ignore')
-                    for line in log_text.split('\n'):
+                    log_text = log_content.decode("utf-8", errors="ignore")
+                    for line in log_text.split("\n"):
                         if line.strip():
                             log_lines.append(line.strip())
             except Exception as parse_error:
                 logger.error(f"Error parsing service logs: {parse_error}")
-                return {'logs': [], 'error': f'Error parsing logs: {str(parse_error)}'}
-            
+                return {"logs": [], "error": f"Error parsing logs: {str(parse_error)}"}
+
             return {
-                'logs': log_lines,
-                'service_name': service.name,
-                'service_id': service_id
+                "logs": log_lines,
+                "service_name": service.name,
+                "service_id": service_id,
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting service logs for {service_id}: {e}")
-            return {'logs': [], 'error': str(e)}
+            return {"logs": [], "error": str(e)}
 
-    def get_container_logs(self, container_id: str, lines: int = 100, since: str = None) -> Dict:
+    def get_container_logs(
+        self, container_id: str, lines: int = 100, since: str = None
+    ) -> Dict:
         """Get logs for a specific container"""
         try:
             if not self.client:
-                return {'logs': [], 'error': 'Docker client not available'}
-            
+                return {"logs": [], "error": "Docker client not available"}
+
             container = self.client.containers.get(container_id)
-            
-            kwargs = {
-                'stdout': True,
-                'stderr': True,
-                'timestamps': True,
-                'tail': lines
-            }
-            
+
+            kwargs = {"stdout": True, "stderr": True, "timestamps": True, "tail": lines}
+
             if since:
-                kwargs['since'] = since
-            
+                kwargs["since"] = since
+
             # Get logs - handle both bytes and generator responses
             logs_response = container.logs(**kwargs)
-            
+
             # Parse logs
             log_lines = []
             try:
                 # Handle different response types
-                if hasattr(logs_response, 'read'):
+                if hasattr(logs_response, "read"):
                     # It's a file-like object
                     log_content = logs_response.read()
-                elif hasattr(logs_response, '__iter__') and not isinstance(logs_response, (str, bytes)):
+                elif hasattr(logs_response, "__iter__") and not isinstance(
+                    logs_response, (str, bytes)
+                ):
                     # It's a generator/iterator
-                    log_content = b''.join(logs_response)
+                    log_content = b"".join(logs_response)
                 else:
                     # It's already bytes or string
                     log_content = logs_response
-                
+
                 if log_content:
                     if isinstance(log_content, bytes):
-                        log_text = log_content.decode('utf-8', errors='ignore')
+                        log_text = log_content.decode("utf-8", errors="ignore")
                     else:
                         log_text = str(log_content)
-                    
-                    for line in log_text.split('\n'):
+
+                    for line in log_text.split("\n"):
                         if line.strip():
                             log_lines.append(line.strip())
             except Exception as parse_error:
                 logger.error(f"Error parsing container logs: {parse_error}")
-                return {'logs': [], 'error': f'Error parsing logs: {str(parse_error)}'}
-            
+                return {"logs": [], "error": f"Error parsing logs: {str(parse_error)}"}
+
             return {
-                'logs': log_lines,
-                'container_name': container.name,
-                'container_id': container_id
+                "logs": log_lines,
+                "container_name": container.name,
+                "container_id": container_id,
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting container logs for {container_id}: {e}")
-            return {'logs': [], 'error': str(e)}
+            return {"logs": [], "error": str(e)}
 
     def get_service_tasks_with_containers(self, service_id: str) -> List[Dict]:
         """Get service tasks with their container information"""
         try:
             if not self.client:
                 return []
-            
+
             service = self.client.services.get(service_id)
             tasks = service.tasks()
-            
+
             task_info = []
             for task in tasks:
-                container_id = task.get('Status', {}).get('ContainerStatus', {}).get('ContainerID')
-                
+                container_id = (
+                    task.get("Status", {}).get("ContainerStatus", {}).get("ContainerID")
+                )
+
                 task_data = {
-                    'task_id': task['ID'],
-                    'node_id': task['NodeID'],
-                    'state': task['Status']['State'],
-                    'desired_state': task['DesiredState'],
-                    'created_at': task['CreatedAt'],
-                    'updated_at': task['UpdatedAt'],
-                    'container_id': container_id
+                    "task_id": task["ID"],
+                    "node_id": task["NodeID"],
+                    "state": task["Status"]["State"],
+                    "desired_state": task["DesiredState"],
+                    "created_at": task["CreatedAt"],
+                    "updated_at": task["UpdatedAt"],
+                    "container_id": container_id,
                 }
-                
+
                 # Get container info if available
                 if container_id:
                     try:
                         container = self.client.containers.get(container_id)
-                        task_data['container_name'] = container.name
-                        task_data['container_status'] = container.status
+                        task_data["container_name"] = container.name
+                        task_data["container_status"] = container.status
                     except Exception:
                         pass
-                
+
                 task_info.append(task_data)
-            
+
             return task_info
-            
+
         except Exception as e:
             logger.error(f"Error getting service tasks for {service_id}: {e}")
             return []
@@ -382,20 +380,20 @@ class DockerSwarmManager:
         try:
             if not self.client:
                 return {}
-            
+
             info = self.client.info()
             return {
-                'containers': info.get('Containers', 0),
-                'containers_running': info.get('ContainersRunning', 0),
-                'containers_paused': info.get('ContainersPaused', 0),
-                'containers_stopped': info.get('ContainersStopped', 0),
-                'images': info.get('Images', 0),
-                'server_version': info.get('ServerVersion'),
-                'kernel_version': info.get('KernelVersion'),
-                'operating_system': info.get('OperatingSystem'),
-                'architecture': info.get('Architecture'),
-                'cpus': info.get('NCPU', 0),
-                'memory': info.get('MemTotal', 0),
+                "containers": info.get("Containers", 0),
+                "containers_running": info.get("ContainersRunning", 0),
+                "containers_paused": info.get("ContainersPaused", 0),
+                "containers_stopped": info.get("ContainersStopped", 0),
+                "images": info.get("Images", 0),
+                "server_version": info.get("ServerVersion"),
+                "kernel_version": info.get("KernelVersion"),
+                "operating_system": info.get("OperatingSystem"),
+                "architecture": info.get("Architecture"),
+                "cpus": info.get("NCPU", 0),
+                "memory": info.get("MemTotal", 0),
             }
         except Exception as e:
             logger.error(f"Error getting system info: {e}")
