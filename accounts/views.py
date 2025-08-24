@@ -14,7 +14,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import User, APIKey, AuditLog, UserSession
 from .forms import CustomUserCreationForm, CustomUserChangeForm, APIKeyForm
 from .decorators import role_required, audit_action
-from .signals import generate_api_key
+from .signals import generate_api_key, get_client_ip
+from dashboard.docker_utils import DockerSwarmManager
+from django.db import models
 import json
 
 
@@ -299,6 +301,150 @@ def api_user_activity(request):
     return JsonResponse({
         'activity': list(activity_logs)
     })
+
+
+@role_required('admin')
+def settings_view(request):
+    """Settings page view (admin only)"""
+    import sys
+    import django
+    from django.db import connection
+    from django.conf import settings
+    
+    # Get user statistics
+    total_users = User.objects.count()
+    active_users = User.objects.filter(
+        last_activity__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    admin_users = User.objects.filter(role='admin').count()
+    api_users = User.objects.filter(is_api_enabled=True).count()
+    
+    # Get recent users
+    recent_users = User.objects.order_by('-date_joined')[:10]
+    
+    # Get recent audit logs
+    recent_logs = AuditLog.objects.order_by('-timestamp')[:20]
+    
+    # Get system info
+    docker_manager = DockerSwarmManager()
+    
+    try:
+        docker_version = docker_manager.get_system_info().get('server_version', 'Unknown')
+    except:
+        docker_version = 'Unknown'
+    
+    context = {
+        'version': '1.1.0',
+        'django_version': django.get_version(),
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'database_info': connection.vendor.title(),
+        'docker_version': docker_version,
+        'swarm_active': docker_manager.is_swarm_active(),
+        'debug': settings.DEBUG,
+        'user_stats': {
+            'total_users': total_users,
+            'active_users': active_users,
+            'admin_users': admin_users,
+            'api_users': api_users,
+        },
+        'recent_users': recent_users,
+        'recent_logs': recent_logs,
+    }
+    
+    return render(request, 'accounts/settings.html', context)
+
+
+@role_required('admin')
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_user_status(request, user_id):
+    """Toggle user active status"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+        data = json.loads(request.body)
+        activate = data.get('activate', False)
+        
+        if user == request.user:
+            return JsonResponse({'status': 'error', 'message': 'Cannot modify your own account'}, status=400)
+        
+        user.is_active = activate
+        user.save()
+        
+        action = 'activated' if activate else 'deactivated'
+        AuditLog.objects.create(
+            user=request.user,
+            action='modify_user',
+            resource=f'User {user.username} {action}',
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            success=True
+        )
+        
+        return JsonResponse({
+            'status': 'success', 
+            'message': f'User {user.username} has been {action} successfully'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@role_required('admin')
+def export_logs_view(request):
+    """Export audit logs as CSV"""
+    import csv
+    from django.http import HttpResponse
+    from datetime import datetime
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="audit-logs-{datetime.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Timestamp', 'User', 'Action', 'Resource', 'IP Address', 'Success', 'Error Message'])
+    
+    logs = AuditLog.objects.select_related('user').order_by('-timestamp')[:1000]  # Last 1000 logs
+    
+    for log in logs:
+        writer.writerow([
+            log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            log.user.username if log.user else 'Anonymous',
+            log.get_action_display(),
+            log.resource,
+            log.ip_address,
+            'Yes' if log.success else 'No',
+            log.error_message
+        ])
+    
+    return response
+
+
+@role_required('admin')
+def api_system_uptime(request):
+    """Get system uptime"""
+    import psutil
+    from datetime import datetime, timedelta
+    
+    try:
+        # Get system boot time
+        boot_time = datetime.fromtimestamp(psutil.boot_time())
+        uptime = datetime.now() - boot_time
+        
+        # Format uptime
+        days = uptime.days
+        hours, remainder = divmod(uptime.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        
+        if days > 0:
+            uptime_str = f"{days} days, {hours} hours, {minutes} minutes"
+        elif hours > 0:
+            uptime_str = f"{hours} hours, {minutes} minutes"
+        else:
+            uptime_str = f"{minutes} minutes"
+        
+        return JsonResponse({'uptime': uptime_str})
+        
+    except Exception:
+        return JsonResponse({'uptime': 'Unknown'})
 
 
 @role_required('admin')

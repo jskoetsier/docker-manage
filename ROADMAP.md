@@ -2,28 +2,51 @@
 
 This document outlines the planned features and improvements for the Docker Swarm Manager project. Features are organized by priority and development phases.
 
-## Current Status: v1.0.0 ✅
+## Current Status: v1.1.0-beta ✅
 
-The initial release is complete with core Docker Swarm management functionality, real-time monitoring, and a responsive web interface.
+The authentication and settings enhancement is complete with comprehensive user management, role-based access control, and admin settings dashboard.
+
+### ✅ Recently Completed (v1.1.0-beta)
+- **Authentication & Authorization System**
+  - Multi-user support with role-based access control (Admin, Manager, Viewer)
+  - User session management and audit logging
+  - API key authentication for automation
+  - Comprehensive user management interface
+
+- **Admin Settings Dashboard**
+  - System settings interface for administrators
+  - User management with quick actions
+  - Security configuration panel
+  - System maintenance tools
+  - Real-time audit log monitoring
 
 ---
 
-## Phase 2: Enhanced User Experience (v1.1.0)
+## Phase 2: Advanced Monitoring & Analytics (v1.2.0)
 
 ### High Priority Features
 
-#### 🔐 Authentication & Authorization System
-- **Multi-user Support**
-  - User registration and login system
-  - Role-based access control (Admin, Manager, Viewer)
-  - User session management
-  - Password reset functionality
+#### 📊 Enhanced Monitoring & Metrics
+- **Advanced Dashboard**
+  - Historical resource usage graphs (CPU, Memory, Network)
+  - Service performance metrics over time
+  - Interactive charts and visualizations
+  - Custom dashboard layouts per user role
 
-- **Permission Management**
-  - Service-level permissions
-  - Node access controls
-  - API key authentication for automation
-  - Audit logging for user actions
+- **Alerting System**
+  - Configurable alerts for service failures
+  - Resource usage threshold notifications
+  - Email/Slack/Discord notifications
+  - Alert acknowledgment and escalation system
+  - SMS notifications for critical alerts
+
+#### 🔔 Notification Management
+- **Multi-channel Notifications**
+  - Email notification system
+  - Webhook integrations (Slack, Discord, Teams)
+  - SMS alerts for critical events
+  - In-app notification center
+  - Notification preferences per user
 
 #### 📊 Advanced Monitoring & Metrics
 - **Enhanced Dashboard**

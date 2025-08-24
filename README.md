@@ -356,11 +356,11 @@ For support and questions:
 This project includes comprehensive documentation:
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Detailed version history and changes
-- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans
+- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans  
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview and architecture
 
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version information.
 
-**Current Version: v1.0.0** - Complete Docker Swarm management with real-time monitoring
+**Current Version: v1.1.0-beta** - Authentication system with role-based access control and admin settings

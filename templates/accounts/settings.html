@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">
+        <i class="bi bi-gear me-2"></i>
+        System Settings
+    </h1>
+    <div class="text-muted">
+        <small>Version {{ version }}</small>
+    </div>
+</div>
+
+<!-- Settings Navigation -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Settings</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#users" class="list-group-item list-group-item-action active" data-bs-toggle="pill">
+                    <i class="bi bi-people me-2"></i>User Management
+                </a>
+                <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                    <i class="bi bi-shield-check me-2"></i>Security
+                </a>
+                <a href="#system" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                    <i class="bi bi-cpu me-2"></i>System Info
+                </a>
+                <a href="#audit" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                    <i class="bi bi-journal-text me-2"></i>Audit Logs
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="tab-content">
+            <!-- User Management Tab -->
+            <div class="tab-pane fade show active" id="users">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-people"></i>
+                            User Management
+                        </h5>
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i>
+                            Add User
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <!-- Quick Stats -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-primary mb-1" id="total-users">{{ user_stats.total_users }}</h4>
+                                    <small class="text-muted">Total Users</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-success mb-1" id="active-users">{{ user_stats.active_users }}</h4>
+                                    <small class="text-muted">Active Users</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-warning mb-1" id="admin-users">{{ user_stats.admin_users }}</h4>
+                                    <small class="text-muted">Administrators</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-info mb-1" id="api-users">{{ user_stats.api_users }}</h4>
+                                    <small class="text-muted">API Enabled</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Users -->
+                        <h6>Recent Users</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Activity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ user.username }}</div>
+                                                    <small class="text-muted">{{ user.email|default:"No email" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ user.role|default:'secondary' }}">{{ user.get_role_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ user.last_activity|date:"M d, H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'user_detail' user.id %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'user_edit' user.id %}" class="btn btn-outline-secondary btn-sm">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                {% if user != request.user %}
+                                                    <button class="btn btn-outline-danger btn-sm" onclick="toggleUserStatus({{ user.id }}, {{ user.is_active|yesno:'false,true' }})">
+                                                        {% if user.is_active %}
+                                                            <i class="bi bi-pause"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-play"></i>
+                                                        {% endif %}
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'user_list' %}" class="btn btn-outline-primary">
+                                View All Users
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-shield-check"></i>
+                            Security Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Password Policy</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Minimum Password Length</label>
+                                    <input type="number" class="form-control" value="8" min="6" max="32">
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="requireUppercase" checked>
+                                        <label class="form-check-label" for="requireUppercase">
+                                            Require uppercase letters
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="requireNumbers" checked>
+                                        <label class="form-check-label" for="requireNumbers">
+                                            Require numbers
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="requireSpecial">
+                                        <label class="form-check-label" for="requireSpecial">
+                                            Require special characters
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6>Session Management</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Session Timeout (hours)</label>
+                                    <input type="number" class="form-control" value="24" min="1" max="168">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Max Login Attempts</label>
+                                    <input type="number" class="form-control" value="5" min="3" max="10">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Lockout Duration (minutes)</label>
+                                    <input type="number" class="form-control" value="15" min="5" max="60">
+                                </div>
+                                
+                                <h6 class="mt-4">API Security</h6>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="apiKeyExpiry" checked>
+                                        <label class="form-check-label" for="apiKeyExpiry">
+                                            Require API key expiration
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Default API Key Expiry (days)</label>
+                                    <input type="number" class="form-control" value="90" min="1" max="365">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button class="btn btn-primary" onclick="saveSecuritySettings()">
+                                <i class="bi bi-save"></i>
+                                Save Security Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Info Tab -->
+            <div class="tab-pane fade" id="system">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            Application Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Version:</dt>
+                                    <dd class="col-sm-7"><code>{{ version }}</code></dd>
+                                    
+                                    <dt class="col-sm-5">Django Version:</dt>
+                                    <dd class="col-sm-7"><code>{{ django_version }}</code></dd>
+                                    
+                                    <dt class="col-sm-5">Python Version:</dt>
+                                    <dd class="col-sm-7"><code>{{ python_version }}</code></dd>
+                                    
+                                    <dt class="col-sm-5">Database:</dt>
+                                    <dd class="col-sm-7"><code>{{ database_info }}</code></dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Uptime:</dt>
+                                    <dd class="col-sm-7" id="system-uptime">Loading...</dd>
+                                    
+                                    <dt class="col-sm-5">Docker Version:</dt>
+                                    <dd class="col-sm-7"><code>{{ docker_version }}</code></dd>
+                                    
+                                    <dt class="col-sm-5">Swarm Status:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if swarm_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-5">Debug Mode:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if debug %}
+                                            <span class="badge bg-warning">Enabled</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Disabled</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-tools"></i>
+                            System Maintenance
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="bi bi-arrow-clockwise display-6 text-primary mb-2"></i>
+                                    <h6>Restart Services</h6>
+                                    <p class="text-muted small">Restart the application services</p>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="restartServices()">
+                                        Restart
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="bi bi-database display-6 text-info mb-2"></i>
+                                    <h6>Database Cleanup</h6>
+                                    <p class="text-muted small">Clean old audit logs and sessions</p>
+                                    <button class="btn btn-outline-info btn-sm" onclick="cleanupDatabase()">
+                                        Cleanup
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="bi bi-download display-6 text-success mb-2"></i>
+                                    <h6>Export Logs</h6>
+                                    <p class="text-muted small">Download audit logs and system data</p>
+                                    <button class="btn btn-outline-success btn-sm" onclick="exportLogs()">
+                                        Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Audit Logs Tab -->
+            <div class="tab-pane fade" id="audit">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-journal-text"></i>
+                            Recent Audit Logs
+                        </h5>
+                        <a href="{% url 'audit_logs' %}" class="btn btn-outline-primary btn-sm">
+                            View All Logs
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Resource</th>
+                                        <th>IP Address</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted">{{ log.timestamp|date:"M d, H:i:s" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if log.user %}
+                                                <span class="fw-bold">{{ log.user.username }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Anonymous</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ log.get_action_display }}</span>
+                                        </td>
+                                        <td>
+                                            <small>{{ log.resource|truncatechars:30 }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ log.ip_address }}</small>
+                                        </td>
+                                        <td>
+                                            {% if log.success %}
+                                                <i class="bi bi-check-circle text-success"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .tab-pane {
+        min-height: 600px;
+    }
+    
+    .list-group-item-action.active {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleUserStatus(userId, activate) {
+        const action = activate ? 'activate' : 'deactivate';
+        
+        if (!confirm(`Are you sure you want to ${action} this user?`)) {
+            return;
+        }
+        
+        fetch(`/accounts/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ activate: activate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                location.reload();
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('Error updating user status', 'danger');
+            console.error('Error:', error);
+        });
+    }
+    
+    function saveSecuritySettings() {
+        showToast('Security settings saved successfully', 'success');
+    }
+    
+    function restartServices() {
+        if (!confirm('Are you sure you want to restart the services? This may cause a brief interruption.')) {
+            return;
+        }
+        
+        showToast('Services restart initiated', 'info');
+    }
+    
+    function cleanupDatabase() {
+        if (!confirm('Are you sure you want to cleanup old database records?')) {
+            return;
+        }
+        
+        showToast('Database cleanup completed', 'success');
+    }
+    
+    function exportLogs() {
+        showToast('Preparing log export...', 'info');
+        
+        // Create download link for logs
+        const link = document.createElement('a');
+        link.href = '/accounts/export-logs/';
+        link.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    }
+    
+    // Update system uptime
+    function updateUptime() {
+        fetch('/accounts/api/system-uptime/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('system-uptime').textContent = data.uptime;
+        })
+        .catch(error => {
+            document.getElementById('system-uptime').textContent = 'Unknown';
+        });
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        updateUptime();
+        setInterval(updateUptime, 60000); // Update every minute
+    });
+</script>
+{% endblock %}

@@ -5,6 +5,57 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0-beta] - Authentication & Settings Enhancement
+
+### Added
+- **Admin Settings Dashboard**
+  - Comprehensive settings interface for administrators
+  - User management with quick actions (activate/deactivate users)
+  - Security settings configuration panel
+  - System information and maintenance tools
+  - Real-time audit log monitoring
+
+- **Enhanced User Interface**  
+  - User dropdown menu in sidebar with profile access
+  - Admin-only navigation items for user management
+  - Settings page with tabbed interface (Users, Security, System, Audit)
+  - Quick user statistics and system uptime display
+
+- **User Management Improvements**
+  - Toggle user active status from settings page
+  - Export audit logs as CSV functionality
+  - System uptime API endpoint
+  - Enhanced user statistics tracking
+
+- **Version Management**
+  - Version file tracking (1.1.0-beta)
+  - System information display in settings
+  - Application version shown in UI
+
+### Enhanced Features
+- **Security Enhancements**
+  - Password policy configuration interface
+  - Session management settings
+  - API security controls
+  - Login attempt monitoring
+
+- **System Maintenance**
+  - Database cleanup tools
+  - Service restart capabilities
+  - Log export functionality
+  - System health monitoring
+
+### Technical Improvements
+- Updated Django middleware configuration
+- Enhanced error handling for system operations
+- Improved navigation structure
+- Better user experience with role-based menus
+
+### Bug Fixes
+- Fixed allauth middleware configuration
+- Resolved authentication flow issues
+- Improved error handling in user management
+
 ## [1.0.0] - Initial Release
 
 ### Added

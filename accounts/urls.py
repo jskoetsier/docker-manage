@@ -49,7 +49,13 @@ urlpatterns = [
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
     
+    # Settings (Admin only)
+    path('settings/', views.settings_view, name='settings'),
+    path('users/<int:user_id>/toggle-status/', views.toggle_user_status, name='toggle_user_status'),
+    path('export-logs/', views.export_logs_view, name='export_logs'),
+    
     # API Endpoints
     path('api/user-activity/', views.api_user_activity, name='api_user_activity'),
     path('api/user-stats/', views.api_user_stats, name='api_user_stats'),
+    path('api/system-uptime/', views.api_system_uptime, name='api_system_uptime'),
 ]
