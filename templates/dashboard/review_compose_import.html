@@ -39,7 +39,7 @@
                             <i class="bi bi-box-arrow-up-right ms-1"></i>
                         </a>
                     </dd>
-                    
+
                     <dt class="col-sm-5">Branch:</dt>
                     <dd class="col-sm-7"><code>{{ metadata.branch }}</code></dd>
                 </dl>
@@ -48,7 +48,7 @@
                 <dl class="row">
                     <dt class="col-sm-6">Total Services:</dt>
                     <dd class="col-sm-6"><span class="badge bg-primary">{{ metadata.total_services }}</span></dd>
-                    
+
                     <dt class="col-sm-6">Compose Files:</dt>
                     <dd class="col-sm-6"><span class="badge bg-info">{{ metadata.compose_files|length }}</span></dd>
                 </dl>
@@ -63,7 +63,7 @@
                             <span class="text-muted">None</span>
                         {% endfor %}
                     </dd>
-                    
+
                     <dt class="col-sm-5">Volumes:</dt>
                     <dd class="col-sm-7">
                         {% for volume in metadata.volumes %}
@@ -75,7 +75,7 @@
                 </dl>
             </div>
         </div>
-        
+
         {% if metadata.compose_files %}
             <h6 class="mt-3">Compose Files Found:</h6>
             <ul class="list-unstyled">
@@ -93,7 +93,7 @@
 <!-- Services Selection -->
 <form method="post">
     {% csrf_token %}
-    
+
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
@@ -119,8 +119,8 @@
                         <div class="card border {% if service.warnings %}border-warning{% else %}border-success{% endif %}">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div class="form-check">
-                                    <input class="form-check-input service-checkbox" type="checkbox" 
-                                           name="selected_services" value="{{ service.name }}" 
+                                    <input class="form-check-input service-checkbox" type="checkbox"
+                                           name="selected_services" value="{{ service.name }}"
                                            id="service_{{ forloop.counter }}">
                                     <label class="form-check-label fw-bold" for="service_{{ forloop.counter }}">
                                         {{ service.name }}
@@ -145,7 +145,7 @@
                                         <div class="fw-bold">{{ service.replicas }}</div>
                                     </div>
                                 </div>
-                                
+
                                 {% if service.ports %}
                                     <div class="mt-2">
                                         <small class="text-muted">Ports:</small>
@@ -158,7 +158,7 @@
                                         </div>
                                     </div>
                                 {% endif %}
-                                
+
                                 {% if service.environment %}
                                     <div class="mt-2">
                                         <small class="text-muted">Environment Variables:</small>
@@ -167,7 +167,7 @@
                                         </div>
                                     </div>
                                 {% endif %}
-                                
+
                                 {% if service.warnings %}
                                     <div class="mt-2">
                                         <small class="text-warning fw-bold">Warnings:</small>
@@ -181,16 +181,16 @@
                                         </ul>
                                     </div>
                                 {% endif %}
-                                
+
                                 <!-- Service Details Collapse -->
                                 <div class="mt-2">
-                                    <button class="btn btn-outline-info btn-sm" type="button" 
+                                    <button class="btn btn-outline-info btn-sm" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#details_{{ forloop.counter }}">
                                         <i class="bi bi-info-circle"></i>
                                         Show Details
                                     </button>
                                 </div>
-                                
+
                                 <div class="collapse mt-2" id="details_{{ forloop.counter }}">
                                     <div class="border-top pt-2">
                                         {% if service.environment %}
@@ -201,7 +201,7 @@
                                                 {% endfor %}
                                             </div>
                                         {% endif %}
-                                        
+
                                         {% if service.volumes %}
                                             <h6 class="small fw-bold mt-2">Volumes:</h6>
                                             <div class="small">
@@ -210,7 +210,7 @@
                                                 {% endfor %}
                                             </div>
                                         {% endif %}
-                                        
+
                                         {% if service.networks %}
                                             <h6 class="small fw-bold mt-2">Networks:</h6>
                                             <div class="small">
@@ -219,7 +219,7 @@
                                                 {% endfor %}
                                             </div>
                                         {% endif %}
-                                        
+
                                         {% if service.labels %}
                                             <h6 class="small fw-bold mt-2">Labels:</h6>
                                             <div class="small">
@@ -235,7 +235,7 @@
                     </div>
                     {% endfor %}
                 </div>
-                
+
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-cloud-upload"></i>
@@ -263,40 +263,40 @@
         const checkboxes = document.querySelectorAll('.service-checkbox');
         checkboxes.forEach(checkbox => checkbox.checked = true);
     }
-    
+
     function selectNone() {
         const checkboxes = document.querySelectorAll('.service-checkbox');
         checkboxes.forEach(checkbox => checkbox.checked = false);
     }
-    
+
     // Form validation
     document.querySelector('form').addEventListener('submit', function(e) {
         const checkedBoxes = document.querySelectorAll('.service-checkbox:checked');
-        
+
         if (checkedBoxes.length === 0) {
             e.preventDefault();
             showToast('Please select at least one service to deploy', 'warning');
             return;
         }
-        
+
         if (!confirm(`Are you sure you want to deploy ${checkedBoxes.length} service(s) to your Docker Swarm?`)) {
             e.preventDefault();
             return;
         }
-        
+
         // Show loading state
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Deploying Services...';
         submitBtn.disabled = true;
-        
+
         // Re-enable button after 60 seconds (timeout protection)
         setTimeout(() => {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }, 60000);
     });
-    
+
     // Auto-select services without warnings
     document.addEventListener('DOMContentLoaded', function() {
         const serviceCards = document.querySelectorAll('.card.border-success');
