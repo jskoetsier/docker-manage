@@ -5,6 +5,65 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0-beta] - Version Management & Docker Compose Import
+
+### Added
+- **Version Management System**
+  - Version display in UI footer with git commit information
+  - Build information context processor for templates
+  - Git branch and commit date tracking
+  - Formatted version strings for display
+
+- **Docker Compose Import from Git**
+  - Import Docker Compose files directly from Git repositories
+  - Support for GitHub, GitLab, and other Git hosting services
+  - Automatic branch detection (main/master fallback)
+  - Parse and convert Compose services to Docker Swarm format
+  - Review interface with service validation and warnings
+  - Selective deployment of imported services
+
+- **Enhanced Repository Support**
+  - Popular example repositories pre-configured
+  - Support for specific file paths within repositories
+  - Multiple compose file detection and processing
+  - Network and volume metadata extraction
+
+- **Management Commands**
+  - `test_compose_import` command for testing import functionality
+  - CLI testing of repository imports with detailed output
+  - Validation warnings and compatibility checks
+
+### Enhanced Features
+- **Service Management**
+  - "Import from Git" button added to Services page
+  - Streamlined workflow from import to deployment
+  - Better error handling and user feedback
+  - Session-based review process
+
+- **Error Handling Improvements**
+  - Specific error messages for different failure types
+  - Repository clone timeout handling
+  - Branch fallback mechanisms (main → master)
+  - File not found and access error handling
+
+### Technical Improvements
+- Added PyYAML and GitPython dependencies
+- Temporary directory management for git operations
+- Compose service validation for Swarm compatibility
+- Enhanced logging for debugging import issues
+
+### Bug Fixes
+- Fixed repository cloning with various branch configurations
+- Improved compose file detection algorithms
+- Better handling of build contexts and unsupported features
+- Repository cleanup on failed operations
+
+### Testing & Validation
+- Successfully tested with docker/awesome-compose repository
+- WordPress + MariaDB stack import and deployment verified
+- Multiple service import with validation warnings
+- Command-line testing tools for troubleshooting
+
 ## [1.1.0-beta] - Authentication & Settings Enhancement
 
 ### Added
