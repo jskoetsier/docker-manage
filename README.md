@@ -12,13 +12,19 @@ A comprehensive web-based management interface for Docker Swarm clusters built w
 - 🔄 **Real-time updates** using WebSockets
 - 📱 **Responsive design** for desktop and mobile
 
+## Testing Status
+
+✅ **Successfully tested and deployed on production server**
+- **Platform**: Ubuntu 24.04.3 LTS
+- **Cluster**: 4-node Docker Swarm (1 manager + 3 workers)
+- **Resources**: 36 CPUs, 56GB RAM total
+- **All Features**: Service creation, scaling, restart, removal - fully functional
+- **API Endpoints**: All REST APIs working correctly
+- **Web Interface**: Accessible and responsive
+
 ## Screenshots
 
-![Dashboard](docs/dashboard.png)
-*Main dashboard showing cluster overview*
-
-![Services](docs/services.png)
-*Service management interface*
+*Screenshots will be added in future updates*
 
 ## Requirements
 
@@ -145,7 +151,7 @@ To use this application, you need a Docker Swarm cluster:
    ```bash
    # On manager node, get join token:
    docker swarm join-token worker
-   
+
    # On worker nodes, run the provided command
    docker swarm join --token <token> <manager-ip>:2377
    ```
@@ -227,7 +233,7 @@ For production, use a reverse proxy like Nginx:
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -235,7 +241,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /ws/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -263,7 +269,7 @@ server {
    ```bash
    # Check Docker is running
    sudo systemctl status docker
-   
+
    # Check user permissions
    groups $USER  # Should include 'docker'
    ```
@@ -272,7 +278,7 @@ server {
    ```bash
    # Check Redis is running
    sudo systemctl status redis-server
-   
+
    # Test Redis connection
    redis-cli ping
    ```
@@ -286,7 +292,7 @@ server {
    ```bash
    # Fix file permissions
    sudo chown -R $USER:$USER /path/to/project
-   
+
    # Add user to docker group
    sudo usermod -aG docker $USER
    ```
@@ -345,12 +351,16 @@ For support and questions:
 - Review the logs for error messages
 - Create an issue on the project repository
 
-## Changelog
+## Documentation
 
-### v1.0.0
-- Initial release
-- Basic Docker Swarm management functionality
-- Real-time monitoring with WebSockets
-- Bootstrap 5 UI
-- Service and node management
-- API endpoints
+This project includes comprehensive documentation:
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Detailed version history and changes
+- **[ROADMAP.md](ROADMAP.md)** - Future features and development plans  
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview and architecture
+
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version information.
+
+**Current Version: v1.0.0** - Complete Docker Swarm management with real-time monitoring
