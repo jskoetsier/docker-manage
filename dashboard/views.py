@@ -294,7 +294,7 @@ def import_compose_view(request):
                 "metadata": metadata,
             }
 
-            return redirect("review_compose_import")
+            return redirect("dashboard:review_compose_import")
 
         except FileNotFoundError as e:
             if "No Docker Compose files found" in str(e):
@@ -339,7 +339,7 @@ def review_compose_import_view(request):
         messages.error(
             request, "No compose data found. Please import a compose file first."
         )
-        return redirect("import_compose")
+        return redirect("dashboard:import_compose")
 
     services = compose_data["services"]
     metadata = compose_data["metadata"]
@@ -517,7 +517,7 @@ def save_compose_as_stack_view(request):
 
     if not compose_data:
         messages.error(request, 'No compose data found. Please import a compose file first.')
-        return redirect('import_compose')
+        return redirect('dashboard:import_compose')
 
     if request.method == 'POST':
         stack_name = request.POST.get('stack_name', '').strip()
@@ -594,7 +594,7 @@ def save_compose_as_stack_view(request):
             del request.session['compose_import']
 
             messages.success(request, f'Stack "{stack_name}" saved successfully')
-            return redirect('stack_detail', stack_id=stack.id)
+            return redirect('dashboard:stacks')
 
         except Exception as e:
             messages.error(request, f'Error saving stack: {str(e)}')
