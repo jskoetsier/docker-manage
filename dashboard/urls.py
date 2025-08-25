@@ -31,6 +31,10 @@ urlpatterns = [
 
     # Stacks
     path("stacks/", views.stacks_view, name="stacks"),
+    path("stacks/<int:stack_id>/", views.stack_detail_view, name="stack_detail"),
+    path("stacks/<int:stack_id>/edit/", views.stack_edit_view, name="stack_edit"),
+    path("stacks/<int:stack_id>/deploy/", views.stack_deploy_view, name="stack_deploy"),
+    path("stacks/<int:stack_id>/delete/", views.stack_delete_view, name="stack_delete"),
 
     # Nodes
     path("nodes/", views.nodes_view, name="nodes"),

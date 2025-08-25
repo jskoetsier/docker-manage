@@ -3,6 +3,8 @@ Dashboard views for Docker Swarm management
 """
 
 import json
+import subprocess
+from django.utils import timezone
 
 from accounts.decorators import (
     audit_action,
@@ -497,8 +499,42 @@ def service_groups_view(request):
 def stacks_view(request):
     """View and manage Docker Compose stacks"""
     from .models import ComposeStack
+    import yaml
 
-    stacks = ComposeStack.objects.all()
+    if request.method == 'POST':
+        stack_name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        compose_content = request.POST.get('compose_content', '').strip()
+
+        if not stack_name:
+            messages.error(request, 'Stack name is required')
+        elif not compose_content:
+            messages.error(request, 'Compose content is required')
+        else:
+            try:
+                # Validate YAML content
+                yaml.safe_load(compose_content)
+                
+                # Create stack
+                stack = ComposeStack.objects.create(
+                    name=stack_name,
+                    description=description,
+                    compose_content=compose_content,
+                    created_by=request.user
+                )
+                
+                # Update metadata
+                stack.update_metadata()
+                
+                messages.success(request, f'Stack "{stack_name}" created successfully')
+                return redirect('dashboard:stack_detail', stack_id=stack.id)
+                
+            except yaml.YAMLError as e:
+                messages.error(request, f'Invalid YAML format: {str(e)}')
+            except Exception as e:
+                messages.error(request, f'Error creating stack: {str(e)}')
+
+    stacks = ComposeStack.objects.all().order_by('-created_at')
 
     context = {
         'stacks': stacks,
@@ -605,3 +641,147 @@ def save_compose_as_stack_view(request):
     }
 
     return render(request, 'dashboard/save_compose_stack.html', context)
+
+
+@login_required
+def stack_detail_view(request, stack_id):
+    """View stack details"""
+    from .models import ComposeStack
+    from django.shortcuts import get_object_or_404
+    
+    stack = get_object_or_404(ComposeStack, id=stack_id)
+    
+    context = {
+        'stack': stack,
+    }
+    
+    return render(request, 'dashboard/stack_detail.html', context)
+
+
+@login_required
+def stack_edit_view(request, stack_id):
+    """Edit a stack"""
+    from .models import ComposeStack
+    from django.shortcuts import get_object_or_404
+    import yaml
+    
+    stack = get_object_or_404(ComposeStack, id=stack_id)
+    
+    if request.method == 'POST':
+        stack_name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        compose_content = request.POST.get('compose_content', '').strip()
+        
+        if not stack_name:
+            messages.error(request, 'Stack name is required')
+        elif not compose_content:
+            messages.error(request, 'Compose content is required')
+        else:
+            try:
+                # Validate YAML content
+                yaml.safe_load(compose_content)
+                
+                # Update stack
+                stack.name = stack_name
+                stack.description = description
+                stack.compose_content = compose_content
+                stack.save()
+                
+                # Update metadata
+                stack.update_metadata()
+                
+                messages.success(request, f'Stack "{stack_name}" updated successfully')
+                return redirect('dashboard:stack_detail', stack_id=stack.id)
+                
+            except yaml.YAMLError as e:
+                messages.error(request, f'Invalid YAML format: {str(e)}')
+            except Exception as e:
+                messages.error(request, f'Error updating stack: {str(e)}')
+    
+    context = {
+        'stack': stack,
+    }
+    
+    return render(request, 'dashboard/stack_edit.html', context)
+
+
+@login_required
+def stack_deploy_view(request, stack_id):
+    """Deploy a stack"""
+    from .models import ComposeStack
+    from django.shortcuts import get_object_or_404
+    import yaml
+    import tempfile
+    import subprocess
+    import os
+    
+    stack = get_object_or_404(ComposeStack, id=stack_id)
+    
+    if request.method == 'POST':
+        try:
+            # Create temporary compose file
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as temp_file:
+                temp_file.write(stack.compose_content)
+                temp_file_path = temp_file.name
+            
+            try:
+                # Deploy using docker stack deploy
+                result = subprocess.run([
+                    'docker', 'stack', 'deploy', 
+                    '--compose-file', temp_file_path,
+                    stack.name
+                ], capture_output=True, text=True, check=True)
+                
+                # Update stack status
+                stack.status = 'deployed'
+                stack.last_deployed = timezone.now()
+                stack.save()
+                
+                messages.success(request, f'Stack "{stack.name}" deployed successfully')
+                
+            finally:
+                # Clean up temporary file
+                os.unlink(temp_file_path)
+                
+        except subprocess.CalledProcessError as e:
+            messages.error(request, f'Failed to deploy stack: {e.stderr}')
+            stack.status = 'failed'
+            stack.save()
+        except Exception as e:
+            messages.error(request, f'Error during deployment: {str(e)}')
+            stack.status = 'failed'
+            stack.save()
+    
+    return redirect('dashboard:stack_detail', stack_id=stack.id)
+
+
+@login_required
+def stack_delete_view(request, stack_id):
+    """Delete a stack"""
+    from .models import ComposeStack
+    from django.shortcuts import get_object_or_404
+    
+    stack = get_object_or_404(ComposeStack, id=stack_id)
+    
+    if request.method == 'POST':
+        try:
+            stack_name = stack.name
+            
+            # Try to remove from Docker Swarm if deployed
+            if stack.status == 'deployed':
+                try:
+                    subprocess.run(['docker', 'stack', 'rm', stack.name], 
+                                 capture_output=True, text=True, check=True)
+                except subprocess.CalledProcessError:
+                    # Continue with deletion even if stack removal fails
+                    pass
+            
+            # Delete from database
+            stack.delete()
+            
+            messages.success(request, f'Stack "{stack_name}" deleted successfully')
+            
+        except Exception as e:
+            messages.error(request, f'Error deleting stack: {str(e)}')
+    
+    return redirect('dashboard:stacks')

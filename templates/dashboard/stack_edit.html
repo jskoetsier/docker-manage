@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ stack.name }} - Docker Swarm Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:stacks' %}">Stacks</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:stack_detail' stack.id %}">{{ stack.name }}</a></li>
+                <li class="breadcrumb-item active">Edit</li>
+            </ol>
+        </nav>
+        <h1 class="h3">
+            <i class="bi bi-pencil me-2"></i>
+            Edit Stack: {{ stack.name }}
+        </h1>
+    </div>
+    <div>
+        <a href="{% url 'dashboard:stack_detail' stack.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to Stack
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Stack Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="stack_name" class="form-label">Stack Name</label>
+                        <input type="text" class="form-control" id="stack_name" name="name" value="{{ stack.name }}" required>
+                        <div class="form-text">This will be used as the Docker stack name during deployment.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stack_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="stack_description" name="description" rows="2">{{ stack.description }}</textarea>
+                        <div class="form-text">Optional description for this stack.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="compose_content" class="form-label">Docker Compose Content</label>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Edit your Docker Compose YAML configuration</small>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" onclick="formatYaml()">
+                                    <i class="bi bi-code"></i>
+                                    Format
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="validateYaml()">
+                                    <i class="bi bi-check-circle"></i>
+                                    Validate
+                                </button>
+                            </div>
+                        </div>
+                        <textarea class="form-control" id="compose_content" name="compose_content" rows="20" 
+                                  style="font-family: 'Monaco', 'Consolas', 'Courier New', monospace; font-size: 0.9rem;" 
+                                  required>{{ stack.compose_content }}</textarea>
+                        <div class="form-text">
+                            YAML format required. Make sure to use proper indentation (2 spaces).
+                        </div>
+                        <div id="yaml-validation" class="mt-2"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{% url 'dashboard:stack_detail' stack.id %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i>
+                                Cancel
+                            </a>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                Update Stack
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Stack Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Status:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-{% if stack.status == 'deployed' %}success{% elif stack.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                            {{ stack.get_status_display }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-6">Services:</dt>
+                    <dd class="col-sm-6">{{ stack.services_count }}</dd>
+                    
+                    <dt class="col-sm-6">Created:</dt>
+                    <dd class="col-sm-6">{{ stack.created_at|date:"M d, Y" }}</dd>
+                    
+                    <dt class="col-sm-6">Created by:</dt>
+                    <dd class="col-sm-6">{{ stack.created_by.username }}</dd>
+                    
+                    {% if stack.last_deployed %}
+                        <dt class="col-sm-6">Last deployed:</dt>
+                        <dd class="col-sm-6">{{ stack.last_deployed|date:"M d, Y H:i" }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i>
+                    Tips
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Use 2 spaces for indentation
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Include version at the top
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Use deploy.replicas for scaling
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Specify networks for multi-service communication
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-info-circle text-info"></i>
+                        Changes will not affect deployed services until redeployed
+                    </li>
+                </ul>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-info btn-sm" onclick="showExampleCompose()">
+                        <i class="bi bi-eye"></i>
+                        Show Example
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% if stack.status == 'deployed' %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0 text-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Deployment Notice
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small mb-0">
+                    This stack is currently deployed. Changes will not take effect until you redeploy the stack.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Example Compose Modal -->
+<div class="modal fade" id="exampleComposeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Example Docker Compose</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre class="bg-light p-3"><code class="language-yaml">version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - frontend
+
+  app:
+    image: node:16-alpine
+    environment:
+      - NODE_ENV=production
+    deploy:
+      replicas: 3
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - app_data:/app/data
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=myapp
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    networks:
+      - backend
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+networks:
+  frontend:
+    driver: overlay
+  backend:
+    driver: overlay
+
+volumes:
+  app_data:
+  db_data:</code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyExample()">Copy Example</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function validateYaml() {
+        const content = document.getElementById('compose_content').value;
+        const validationDiv = document.getElementById('yaml-validation');
+        
+        try {
+            // Basic YAML validation - check for common issues
+            const lines = content.split('\n');
+            let hasVersion = false;
+            let hasServices = false;
+            let indentationIssues = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.trim().startsWith('version:')) hasVersion = true;
+                if (line.trim().startsWith('services:')) hasServices = true;
+                
+                // Check for tab characters
+                if (line.includes('\t')) {
+                    indentationIssues.push(`Line ${i + 1}: Use spaces instead of tabs`);
+                }
+            }
+            
+            let messages = [];
+            if (!hasVersion) messages.push('Consider adding a version field (e.g., version: "3.8")');
+            if (!hasServices) messages.push('No services section found');
+            messages = messages.concat(indentationIssues);
+            
+            if (messages.length === 0) {
+                validationDiv.innerHTML = '<div class="alert alert-success alert-sm"><i class="bi bi-check-circle"></i> YAML looks good!</div>';
+            } else {
+                validationDiv.innerHTML = '<div class="alert alert-warning alert-sm"><i class="bi bi-exclamation-triangle"></i> ' + messages.join('<br>') + '</div>';
+            }
+        } catch (e) {
+            validationDiv.innerHTML = '<div class="alert alert-danger alert-sm"><i class="bi bi-x-circle"></i> YAML validation error: ' + e.message + '</div>';
+        }
+    }
+    
+    function formatYaml() {
+        const textarea = document.getElementById('compose_content');
+        let content = textarea.value;
+        
+        // Basic YAML formatting - ensure consistent indentation
+        const lines = content.split('\n');
+        const formatted = [];
+        
+        for (let line of lines) {
+            // Convert tabs to spaces and normalize indentation
+            line = line.replace(/\t/g, '  ');
+            formatted.push(line);
+        }
+        
+        textarea.value = formatted.join('\n');
+        showToast('YAML formatted', 'success');
+    }
+    
+    function showExampleCompose() {
+        const modal = new bootstrap.Modal(document.getElementById('exampleComposeModal'));
+        modal.show();
+    }
+    
+    function copyExample() {
+        const exampleText = `version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - frontend
+
+  app:
+    image: node:16-alpine
+    environment:
+      - NODE_ENV=production
+    deploy:
+      replicas: 3
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - app_data:/app/data
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=myapp
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    networks:
+      - backend
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+networks:
+  frontend:
+    driver: overlay
+  backend:
+    driver: overlay
+
+volumes:
+  app_data:
+  db_data:`;
+        
+        navigator.clipboard.writeText(exampleText).then(function() {
+            showToast('Example copied to clipboard', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('exampleComposeModal')).hide();
+        });
+    }
+    
+    // Auto-save draft (optional)
+    let saveTimeout;
+    document.getElementById('compose_content').addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(function() {
+            // Could implement auto-save to localStorage here
+        }, 5000);
+    });
+    
+    // Validate on load
+    document.addEventListener('DOMContentLoaded', function() {
+        validateYaml();
+    });
+</script>
+{% endblock %}
