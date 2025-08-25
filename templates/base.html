@@ -91,21 +91,21 @@
             <ul class="nav nav-pills flex-column">
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                       href="{% url 'dashboard' %}">
+                       href="{% url 'dashboard:dashboard' %}">
                         <i class="bi bi-speedometer2"></i>
                         Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'services' in request.resolver_match.url_name %}active{% endif %}"
-                       href="{% url 'services' %}">
+                       href="{% url 'dashboard:services' %}">
                         <i class="bi bi-gear"></i>
                         Services
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'nodes' %}active{% endif %}"
-                       href="{% url 'nodes' %}">
+                       href="{% url 'dashboard:nodes' %}">
                         <i class="bi bi-diagram-3"></i>
                         Nodes
                     </a>
