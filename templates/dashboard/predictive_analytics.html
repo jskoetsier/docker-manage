@@ -159,7 +159,7 @@
                         <label for="metricTypeSelect" class="form-label">Prediction Type</label>
                         <select class="form-select" id="metricTypeSelect">
                             {% for value, label in metric_types %}
-                            <option value="{{ value }}" {% if value==metric_type %}selected{% endif %}>{{ label }}
+                            <option value="{{ value }}" {% if value == metric_type %}selected{% endif %}>{{ label }}
                             </option>
                             {% endfor %}
                         </select>
@@ -168,7 +168,7 @@
                         <label for="timeRangeSelect" class="form-label">Historical Data Range</label>
                         <select class="form-select" id="timeRangeSelect">
                             {% for value, label in time_ranges %}
-                            <option value="{{ value }}" {% if value==time_range %}selected{% endif %}>{{ label }}
+                            <option value="{{ value }}" {% if value == time_range %}selected{% endif %}>{{ label }}
                             </option>
                             {% endfor %}
                         </select>
