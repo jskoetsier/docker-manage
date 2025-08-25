@@ -49,12 +49,12 @@ def analytics_dashboard(request):
 def historical_metrics(request):
     """Historical metrics view with time-series charts"""
     time_range = request.GET.get('range', '24h')
-    measurement = request.GET.get('measurement', 'system_resources')
+    measurement = request.GET.get('measurement', 'resource_usage')
     
     try:
         analytics = AnalyticsEngine()
         
-        if measurement == 'resource_usage':
+        if measurement == 'resource_usage' or measurement == 'system_resources':
             data = analytics.get_resource_usage_trends(time_range, '1h')
         elif measurement == 'service_performance':
             data = analytics.get_service_performance_analysis(None, time_range)
