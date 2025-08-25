@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    ServiceLog, UserPreferences, ServiceGroup,
+    ServiceLog, ServiceGroup, ServiceGroupMapping,
     ComposeStack, DeploymentHistory, Metric, Dashboard, DashboardPanel
 )
 
@@ -18,13 +18,6 @@ class ServiceLogAdmin(admin.ModelAdmin):
     message_preview.short_description = 'Message'
 
 
-@admin.register(UserPreferences)
-class UserPreferencesAdmin(admin.ModelAdmin):
-    list_display = ['user', 'theme', 'refresh_interval', 'notifications_enabled']
-    list_filter = ['theme', 'notifications_enabled']
-    search_fields = ['user__username', 'user__email']
-
-
 @admin.register(ServiceGroup)
 class ServiceGroupAdmin(admin.ModelAdmin):
     list_display = ['name', 'color', 'services_count', 'created_by', 'created_at']
@@ -33,14 +26,22 @@ class ServiceGroupAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     
     def services_count(self, obj):
-        return obj.service_ids.count(',') + 1 if obj.service_ids else 0
+        return obj.get_services_count()
     services_count.short_description = 'Services Count'
+
+
+@admin.register(ServiceGroupMapping)
+class ServiceGroupMappingAdmin(admin.ModelAdmin):
+    list_display = ['group', 'service_name', 'service_id', 'added_by', 'added_at']
+    list_filter = ['group', 'added_by', 'added_at']
+    search_fields = ['service_name', 'service_id', 'group__name']
+    readonly_fields = ['added_at']
 
 
 @admin.register(ComposeStack)
 class ComposeStackAdmin(admin.ModelAdmin):
-    list_display = ['name', 'version', 'is_deployed', 'created_by', 'created_at']
-    list_filter = ['is_deployed', 'created_by', 'created_at']
+    list_display = ['name', 'status', 'services_count', 'created_by', 'created_at']
+    list_filter = ['status', 'created_by', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
 
