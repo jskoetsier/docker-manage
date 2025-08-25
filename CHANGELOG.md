@@ -5,6 +5,102 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-08-25 - Complete Stack Management System
+
+### 🚀 Major Features Added
+- **Complete Docker Compose Stack Management**
+  - Full CRUD operations for Docker Compose stacks (Create, Read, Update, Delete)
+  - Import compose files from Git repositories and save as editable stacks
+  - Deploy stacks directly to Docker Swarm with `docker stack deploy`
+  - Stack status tracking (draft, deployed, failed)
+  - Stack metadata parsing (services, networks, volumes count)
+
+### ✨ New User Interface
+- **Stack Navigation**
+  - Added dedicated "Stacks" menu item in sidebar navigation
+  - Comprehensive breadcrumb navigation across all stack pages
+  - Responsive card-based layout for stack overview
+
+- **Stack Management Pages**
+  - **Stack List**: Overview of all stacks with status indicators and quick actions
+  - **Stack Detail**: Complete stack information with compose content display
+  - **Stack Editor**: Advanced YAML editor with validation and formatting
+  - **Create Stack Modal**: Quick stack creation with compose content input
+
+### 🔧 Enhanced Functionality
+- **YAML Editor Features**
+  - Real-time YAML syntax validation
+  - Automatic formatting and indentation correction
+  - Example compose templates with copy-to-clipboard
+  - Tab/space indentation conversion
+  - Syntax highlighting for better readability
+
+- **Git Integration Improvements**
+  - Fixed compose import paths for popular repositories
+  - WordPress + MySQL example now works correctly
+  - Updated all awesome-compose repository paths to use `compose.yaml`
+  - Better error handling for repository cloning and file parsing
+
+### 🛠 Technical Improvements
+- **URL Routing Overhaul**
+  - Fixed all URL namespace issues causing NoReverseMatch errors
+  - Proper `dashboard:` namespace prefixes across all templates
+  - Complete stack CRUD URL patterns with proper HTTP methods
+
+- **Template System Enhancement**
+  - Added custom `dashboard_filters.py` with mathematical operations
+  - Fixed template syntax errors in predictive analytics
+  - Proper template tag loading for all dashboard features
+  - Enhanced error handling and user feedback
+
+### 🐛 Bug Fixes
+- **Template Syntax Fixes**
+  - Fixed `Could not parse the remainder: '==metric_type'` error
+  - Corrected template comparison operators format
+  - Resolved `Invalid filter: 'multiply'` error
+
+- **Service Detail Page**
+  - Fixed service logs URL namespace issue
+  - Corrected all service action button references
+  - Improved service detail page accessibility
+
+### 🚀 Deployment Features
+- **Stack Deployment System**
+  - Direct deployment to Docker Swarm using `docker stack deploy`
+  - Automatic cleanup of deployed stacks when deleted
+  - Deployment status tracking with timestamps
+  - Error handling for failed deployments
+
+### 📋 Import & Export
+- **Enhanced Compose Import**
+  - Save imported compose files as editable stacks
+  - Review and customize services before saving
+  - Metadata preservation from source repositories
+  - Branch and repository URL tracking
+
+### 🎯 User Experience
+- **Interactive Elements**
+  - Copy-to-clipboard functionality for compose content
+  - Confirmation dialogs for destructive actions
+  - Real-time feedback with toast notifications
+  - Loading states and progress indicators
+
+### 📈 Stack Operations
+- **Complete Stack Lifecycle**
+  - ✅ **View**: Comprehensive stack details with metadata
+  - ✅ **Create**: Manual stack creation with YAML editor
+  - ✅ **Edit**: Full-featured YAML editor with validation
+  - ✅ **Deploy**: Direct deployment to Docker Swarm
+  - ✅ **Delete**: Safe removal with Docker cleanup
+  - ✅ **Import**: Git repository integration
+
+### 🔗 Integration Points
+- **Seamless Workflow**
+  - Import from Git → Review → Save as Stack → Edit → Deploy
+  - Direct links between services and stacks
+  - Proper navigation flow with breadcrumbs
+  - Consistent UI patterns across all pages
+
 ## [1.4.1] - 2025-08-25 - Predictive Analytics Bug Fix
 
 ### Fixed
