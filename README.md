@@ -27,12 +27,20 @@ A comprehensive web-based management interface for Docker Swarm clusters built w
 - **Real-time switching** - Toggle between live and historical data views
 - **Panel customization** - Multiple chart types (line, bar, gauge, stat, table)
 
+### 🐳 **Complete Stack Management System**
+- **Full CRUD operations** - Create, Read, Update, Delete for Docker Compose stacks
+- **Advanced YAML editor** - Real-time validation, formatting, and syntax highlighting
+- **Git repository import** - Import compose files and save as editable stacks
+- **Direct deployment** - Deploy stacks to Docker Swarm with `docker stack deploy`
+- **Stack lifecycle management** - Track deployment status (draft, deployed, failed)
+- **Popular examples** - Pre-configured templates for common applications
+
 ### 🚀 **Import & Deployment**
 - **Docker Compose import** - Import services directly from Git repositories
 - **GitHub/GitLab integration** - Clone and deploy from popular Git platforms
 - **Service validation** - Preview and validate services before deployment
-- **Batch deployment** - Deploy multiple services at once
-- **Popular examples** - Pre-configured templates for common applications
+- **Save as stacks** - Convert imported compose files to editable stacks
+- **Workflow integration** - Complete Import → Review → Save → Edit → Deploy pipeline
 
 ### 🔐 **Security & Access Control**
 - **Role-based authentication** - Admin, Manager, and Viewer roles
@@ -431,7 +439,7 @@ This project includes comprehensive documentation:
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version information.
 
-**Current Version: v1.4.0** - Advanced analytics dashboard with historical metrics, predictive analytics, and custom dashboard builder
+**Current Version: v1.5.0** - Complete Stack Management System with CRUD operations, YAML editor, Git import, and direct deployment
 
 ## License
 

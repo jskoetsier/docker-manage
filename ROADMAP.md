@@ -2,13 +2,35 @@
 
 This document outlines the planned features and improvements for the Docker Swarm Manager project. Features are organized by priority and development phases.
 
-## Current Status: v1.4.0 ✅
+## Current Status: v1.5.0 ✅
 
-**🎉 ADVANCED ANALYTICS RELEASE ACHIEVED**
+**🎉 COMPLETE STACK MANAGEMENT SYSTEM ACHIEVED**
 
-The Docker Swarm Manager has reached a major milestone with comprehensive historical metrics, advanced analytics, and interactive dashboards providing deep insights into your Docker Swarm infrastructure.
+The Docker Swarm Manager has reached another major milestone with a complete Docker Compose Stack Management System, providing full CRUD operations, advanced YAML editing, Git integration, and direct deployment capabilities.
 
-### ✅ Recently Completed (v1.4.0)
+### ✅ Recently Completed (v1.5.0)
+- **🐳 Complete Docker Compose Stack Management** 🚀
+  - Full CRUD operations for Docker Compose stacks (Create, Read, Update, Delete)
+  - Advanced YAML editor with real-time validation and formatting
+  - Git repository import with save-as-stack functionality
+  - Direct deployment to Docker Swarm using `docker stack deploy`
+  - Stack status tracking (draft, deployed, failed) with metadata parsing
+  - Comprehensive error handling and user feedback system
+
+- **🎛️ Advanced YAML Editor & Validation**
+  - Real-time YAML syntax validation and error highlighting
+  - Automatic formatting and indentation correction
+  - Example compose templates with copy-to-clipboard functionality
+  - Tab/space conversion and comprehensive validation
+  - Syntax highlighting for better code readability
+
+- **🔧 Enhanced Git Integration & Import System**
+  - Fixed compose import paths for popular repositories (WordPress, NGINX, etc.)
+  - Complete workflow: Import → Review → Save as Stack → Edit → Deploy
+  - Repository metadata preservation with branch and URL tracking
+  - Better error handling for repository cloning and file parsing
+
+### ✅ Previously Completed (v1.4.0)
 - **📊 Historical Metrics & Analytics Dashboard** 🚀
   - Time-series data collection with automated Docker stats API integration
   - Interactive charts and visualizations using Chart.js
