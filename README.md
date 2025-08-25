@@ -11,6 +11,22 @@ A comprehensive web-based management interface for Docker Swarm clusters built w
 - **Health monitoring** - Track container health and service status
 - **Resource tracking** - Monitor CPU, memory, and storage usage
 
+### 📊 **Historical Metrics & Analytics**
+- **Time-series data collection** - Automated metrics collection from Docker stats API
+- **Interactive dashboards** - Grafana-style charts with Chart.js visualizations
+- **Resource usage trends** - Historical analysis of CPU, Memory, Network, and Disk usage
+- **Service performance metrics** - Health scoring and performance tracking over time
+- **Custom time ranges** - Flexible data selection from 1 hour to 30 days
+- **Data export capabilities** - Export metrics in JSON or CSV format
+- **Predictive analytics** - AI-powered trend prediction with confidence scoring
+
+### 🎛️ **Custom Dashboard Builder**
+- **Interactive dashboard creation** - Drag-and-drop panel configuration
+- **Dashboard sharing** - Share dashboards between users with access control
+- **Template system** - Create and use dashboard templates
+- **Real-time switching** - Toggle between live and historical data views
+- **Panel customization** - Multiple chart types (line, bar, gauge, stat, table)
+
 ### 🚀 **Import & Deployment**
 - **Docker Compose import** - Import services directly from Git repositories
 - **GitHub/GitLab integration** - Clone and deploy from popular Git platforms
@@ -415,7 +431,7 @@ This project includes comprehensive documentation:
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version information.
 
-**Current Version: v1.2.0** - Complete Docker Swarm management with version control and Git-based compose import
+**Current Version: v1.4.0** - Advanced analytics dashboard with historical metrics, predictive analytics, and custom dashboard builder
 
 ## License
 

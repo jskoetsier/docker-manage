@@ -5,6 +5,134 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-08-25 - Historical Metrics & Analytics Dashboard
+
+### 🎉 **MAJOR ANALYTICS RELEASE** - Advanced Monitoring & Intelligence
+
+**New Capabilities**: ✅ **IMPLEMENTED**
+- Complete historical metrics collection and analysis system
+- Interactive analytics dashboards with predictive capabilities
+- Custom dashboard builder with sharing and templates
+- Advanced data visualization and export functionality
+
+### Added
+
+#### 📊 **Historical Metrics & Analytics System**
+- **Time-Series Data Collection**
+  - Automated metrics collection from Docker stats API
+  - Historical resource usage tracking (CPU, Memory, Network, Disk)
+  - Service performance metrics over time
+  - Node capacity and utilization monitoring
+  - Custom time range selection (1h to 30d)
+  - Data export capabilities (JSON/CSV formats)
+
+- **Advanced Analytics Engine**
+  - Resource usage trend analysis with statistical insights
+  - Service performance scoring and health analysis
+  - Node capacity analysis and utilization trends
+  - Predictive analytics using linear regression
+  - Confidence scoring for predictions with AI recommendations
+  - Data aggregation and caching for performance optimization
+
+#### 🎛️ **Interactive Dashboard System**
+- **Custom Dashboard Builder**
+  - Grafana-style dashboard creation interface
+  - Drag-and-drop panel configuration
+  - Multiple chart types (line, bar, gauge, stat, table, heatmap)
+  - Real-time and historical view switching
+  - Dashboard templates and sharing system
+  - Per-user access control and permissions
+
+- **Chart.js Integration**
+  - Interactive time-series visualizations
+  - Responsive and mobile-friendly charts
+  - Real-time data updates and auto-refresh
+  - Multiple measurement overlay support
+  - Zoom and pan capabilities for detailed analysis
+
+#### 🔍 **Analytics Views & Reports**
+- **Analytics Dashboard**
+  - System overview with key performance indicators
+  - Resource usage trends visualization
+  - Service health scoring and alerts
+  - Quick action buttons for deep-dive analysis
+
+- **Historical Metrics View**
+  - Comprehensive time-series analysis
+  - Multiple measurement type support
+  - Custom granularity selection (5m, 1h, 6h, 1d)
+  - Data point filtering and search capabilities
+  - Export functionality with multiple formats
+
+- **Predictive Analytics**
+  - 24-hour trend predictions with confidence intervals
+  - Machine learning-based anomaly detection
+  - Resource planning recommendations
+  - Visual confidence indicators and uncertainty bands
+
+### Enhanced Features
+
+#### 🗃️ **Database Models**
+- **Metric Model** - Time-series data storage with indexing
+- **Dashboard Model** - Custom dashboard configurations with sharing
+- **DashboardPanel Model** - Individual panel settings and positioning
+- **Enhanced admin interface** for metrics management
+
+#### 🔧 **Management Commands**
+- **collect_metrics** - Automated metrics collection with continuous mode
+- **setup_sample_data** - Generate realistic sample data for testing
+- **Flexible collection intervals** and measurement filtering
+
+#### 🎨 **User Interface Enhancements**
+- **Enhanced Navigation** - New analytics section with dedicated menu items
+- **Responsive Design** - Mobile-optimized analytics dashboards
+- **Dark Mode Ready** - Consistent theming across analytics components
+- **Loading States** - Progress indicators for data-intensive operations
+
+### Technical Improvements
+
+#### 🏗️ **Architecture**
+- **Separated Analytics Logic** - Dedicated analytics engine and dashboard views
+- **URL Namespace Organization** - Proper URL structure with 'dashboard:' namespace
+- **Template Organization** - Dedicated analytics templates with consistent styling
+- **API Endpoints** - RESTful APIs for metrics data and dashboard operations
+
+#### 📊 **Data Processing**
+- **Statistical Analysis** - Trend calculation, moving averages, and variance analysis
+- **Data Aggregation** - Efficient time-interval grouping and caching
+- **Performance Optimization** - Database indexing and query optimization
+- **Memory Management** - Efficient data handling for large time series
+
+#### 🔒 **Security & Access Control**
+- **Dashboard Permissions** - User-based access control for dashboards
+- **Data Export Security** - Controlled access to sensitive metrics data
+- **CSRF Protection** - Enhanced security for analytics API endpoints
+
+### Bug Fixes
+- Fixed URL namespace conflicts causing NoReverseMatch errors
+- Resolved template URL patterns across all dashboard components
+- Improved error handling for missing or invalid metrics data
+- Fixed measurement type validation in analytics views
+- Enhanced database connection handling for metrics collection
+
+### Dependencies Added
+- **Chart.js 4.0.0** - Advanced charting library for interactive visualizations
+- **InfluxDB Client** - Time-series database integration support
+- **Prometheus Client** - Metrics export and monitoring integration
+- **Django Celery Beat** - Scheduled task management for metrics collection
+
+### Migration Notes
+- **Database Migration Required** - New models for metrics and dashboards
+- **URL Configuration Update** - Dashboard namespace implementation
+- **Template Updates** - All dashboard URLs updated to use namespace
+- **Sample Data Available** - Use `setup_sample_data` command for testing
+
+### Performance Improvements
+- **Database Indexing** - Optimized queries for time-series data
+- **Caching Strategy** - Redis caching for frequently accessed metrics
+- **Data Pagination** - Efficient handling of large datasets
+- **Asynchronous Processing** - Background metrics collection
+
 ## [1.2.0] - Version Management & Docker Compose Import
 
 ### 🎉 **STABLE RELEASE** - Successfully Tested & Deployed
