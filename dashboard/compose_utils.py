@@ -405,19 +405,19 @@ def get_popular_compose_repositories():
         {
             "name": "WordPress with MySQL",
             "url": "https://github.com/docker/awesome-compose",
-            "path": "wordpress-mysql/docker-compose.yml",
+            "path": "wordpress-mysql/compose.yaml",
             "description": "WordPress with MySQL database",
         },
         {
             "name": "NGINX + PHP + MySQL",
             "url": "https://github.com/docker/awesome-compose",
-            "path": "nginx-php-mysql/docker-compose.yml",
+            "path": "nginx-php-mysql/compose.yaml",
             "description": "LEMP stack with NGINX, PHP-FPM and MySQL",
         },
         {
             "name": "Nextcloud with Redis",
             "url": "https://github.com/docker/awesome-compose",
-            "path": "nextcloud-redis-mariadb/docker-compose.yml",
+            "path": "nextcloud-redis-mariadb/compose.yaml",
             "description": "Nextcloud with Redis and MariaDB",
         },
         {
@@ -429,14 +429,14 @@ def get_popular_compose_repositories():
         {
             "name": "Prometheus + Grafana",
             "url": "https://github.com/docker/awesome-compose",
-            "path": "prometheus-grafana/docker-compose.yml",
+            "path": "prometheus-grafana/compose.yaml",
             "description": "Monitoring stack with Prometheus and Grafana",
         },
         {
             "name": "PostgreSQL + Adminer",
             "url": "https://github.com/docker/awesome-compose",
-            "path": "postgresql-adminer/docker-compose.yml",
-            "description": "PostgreSQL database with Adminer web interface",
+            "path": "postgresql-pgadmin/compose.yaml",
+            "description": "PostgreSQL database with pgAdmin web interface",
         },
         {
             "name": "Simple Web App",
