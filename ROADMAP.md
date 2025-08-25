@@ -2,13 +2,37 @@
 
 This document outlines the planned features and improvements for the Docker Swarm Manager project. Features are organized by priority and development phases.
 
-## Current Status: v1.5.0 ✅
+## Current Status: v1.5.1 ✅
 
-**🎉 COMPLETE STACK MANAGEMENT SYSTEM ACHIEVED**
+**🎉 ENHANCED REAL-TIME MONITORING DASHBOARD ACHIEVED**
 
-The Docker Swarm Manager has reached another major milestone with a complete Docker Compose Stack Management System, providing full CRUD operations, advanced YAML editing, Git integration, and direct deployment capabilities.
+The Docker Swarm Manager has reached another milestone with enhanced dashboard monitoring capabilities, providing cluster-wide resource aggregation, real-time load charts, and comprehensive system utilization tracking.
 
-### ✅ Recently Completed (v1.5.0)
+### ✅ Recently Completed (v1.5.1)
+- **📊 Enhanced Real-Time Monitoring Dashboard** 🚀
+  - Cluster-wide resource aggregation across all Swarm nodes
+  - Real-time CPU, Memory, and Load Average charts with Chart.js
+  - Progressive resource utilization bars with color-coded thresholds
+  - Auto-refreshing charts every 5 seconds with smooth animations
+  - Mobile-responsive chart layouts with rolling 20-point data windows
+  - Enhanced system resource display for both Swarm and Standalone modes
+
+- **🎯 Cluster Resource Intelligence**
+  - Multi-node resource calculation and aggregation
+  - Total CPU cores and memory across entire cluster
+  - Node status tracking (ready/down) with manager/worker counts
+  - Container distribution monitoring across cluster nodes
+  - Real-time cluster utilization percentage calculations
+  - System load monitoring (1min, 5min, 15min averages)
+
+- **📈 Advanced Resource Monitoring APIs**
+  - New `/api/cluster/resources/` endpoint for cluster aggregation
+  - New `/api/cluster/stats/` endpoint for real-time statistics
+  - Integration with `psutil` for accurate system monitoring
+  - Enhanced Docker API integration for comprehensive metrics
+  - Live data streaming with JavaScript chart updates
+
+### ✅ Previously Completed (v1.5.0)
 - **🐳 Complete Docker Compose Stack Management** 🚀
   - Full CRUD operations for Docker Compose stacks (Create, Read, Update, Delete)
   - Advanced YAML editor with real-time validation and formatting

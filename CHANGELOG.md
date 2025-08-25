@@ -5,6 +5,58 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2025-08-25 - Enhanced Real-Time Monitoring Dashboard
+
+### 🚀 Major Dashboard Enhancements
+- **Enhanced Real-Time Monitoring**
+  - Cluster-wide resource aggregation across all Swarm nodes
+  - Real-time CPU, Memory, and Load Average charts with Chart.js
+  - Progressive resource utilization bars with color-coded thresholds (green/yellow/red)
+  - Auto-refreshing charts every 5 seconds with smooth animations
+  - Mobile-responsive chart layouts with rolling 20-point data windows
+
+### 📊 Cluster Resource Intelligence
+- **Multi-Node Monitoring**
+  - Total CPU cores and memory calculation across entire cluster
+  - Manager/Worker node count display with status indicators
+  - Container distribution monitoring across cluster nodes
+  - Real-time cluster utilization percentage tracking
+  - System load monitoring (1min, 5min, 15min averages)
+
+- **Enhanced Resource Display**
+  - Dynamic mode detection (Swarm vs Standalone)
+  - Comprehensive resource overview with usage percentages
+  - Color-coded progress bars for CPU, Memory, and Disk usage
+  - Live updating statistics with visual feedback
+
+### 🔧 Technical Improvements
+- **New API Endpoints**
+  - `/api/cluster/resources/` - Cluster resource aggregation endpoint
+  - `/api/cluster/stats/` - Real-time statistics for charts
+  - Enhanced Docker API integration for comprehensive metrics
+  - psutil integration for accurate system monitoring
+
+- **Enhanced DockerSwarmManager**
+  - `get_cluster_resources()` method for multi-node aggregation
+  - `get_cluster_stats()` method for real-time chart data
+  - `_calculate_cluster_utilization()` for usage calculations
+  - Better error handling and resource calculation logic
+
+### 📈 Chart Features
+- **Interactive Charts**
+  - Chart.js integration with smooth animations
+  - Real-time CPU & Memory usage line charts
+  - System Load Average monitoring with multiple timeframes
+  - 20-point rolling data window for smooth visualization
+  - Auto-refresh functionality with error handling
+
+### 🎯 User Experience Improvements
+- **Enhanced Dashboard Layout**
+  - Improved system resource card with cluster information
+  - Better visual hierarchy with badges and progress bars
+  - Color-coded status indicators for quick assessment
+  - Mobile-optimized responsive design
+
 ## [1.5.0] - 2025-08-25 - Complete Stack Management System
 
 ### 🚀 Major Features Added
@@ -125,450 +177,282 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0] - 2025-08-25 - Historical Metrics & Analytics Dashboard
 
-### 🎉 **MAJOR ANALYTICS RELEASE** - Advanced Monitoring & Intelligence
+### 🚀 Major Features Added
+- **📊 Historical Metrics & Analytics Dashboard**
+  - Complete time-series data collection system with automated Docker stats API integration
+  - Interactive charts and visualizations using Chart.js for comprehensive data presentation
+  - Resource usage trends analysis covering CPU, Memory, Network, and Disk usage patterns
+  - Service performance metrics tracking over time with automated health scoring system
+  - Custom time range selection from 1 hour to 30 days with flexible data filtering
+  - Data export capabilities in both JSON and CSV formats for external analysis
+  - Predictive analytics engine with confidence scoring and AI-powered recommendations
 
-**New Capabilities**: ✅ **IMPLEMENTED**
-- Complete historical metrics collection and analysis system
-- Interactive analytics dashboards with predictive capabilities
-- Custom dashboard builder with sharing and templates
-- Advanced data visualization and export functionality
+- **🎛️ Custom Dashboard Builder**
+  - Grafana-style interactive dashboard creation with drag-and-drop functionality
+  - Comprehensive panel configuration with multiple chart types (line, bar, gauge, stat, table)
+  - Dashboard sharing system between users with granular access control
+  - Template-based dashboard system for quick deployment of common monitoring setups
+  - Real-time and historical view switching for flexible data analysis
+  - Dashboard export/import functionality for backup and sharing
 
-### Added
+- **🔍 Advanced Analytics Engine**
+  - Statistical trend analysis with linear regression and pattern recognition
+  - Automated service performance scoring with configurable thresholds and alerting
+  - Node capacity analysis and utilization tracking across the entire cluster
+  - Comprehensive metrics collection management with automated scheduling
+  - Data aggregation and intelligent caching for optimal performance
+  - Anomaly detection for proactive issue identification
 
-#### 📊 **Historical Metrics & Analytics System**
-- **Time-Series Data Collection**
-  - Automated metrics collection from Docker stats API
-  - Historical resource usage tracking (CPU, Memory, Network, Disk)
-  - Service performance metrics over time
-  - Node capacity and utilization monitoring
-  - Custom time range selection (1h to 30d)
-  - Data export capabilities (JSON/CSV formats)
+### ✨ New User Interface Components
+- **📈 Analytics Dashboard Pages**
+  - Main analytics overview with key performance indicators
+  - Historical metrics viewer with interactive time range selection
+  - Predictive analytics page with trend forecasting and recommendations
+  - Custom dashboard builder with intuitive drag-and-drop interface
+  - Service-specific performance analysis with detailed breakdowns
 
-- **Advanced Analytics Engine**
-  - Resource usage trend analysis with statistical insights
-  - Service performance scoring and health analysis
-  - Node capacity analysis and utilization trends
-  - Predictive analytics using linear regression
-  - Confidence scoring for predictions with AI recommendations
-  - Data aggregation and caching for performance optimization
+- **🎨 Enhanced Visualizations**
+  - Real-time updating charts with smooth animations and transitions
+  - Color-coded performance indicators for quick status assessment
+  - Interactive tooltips and data point exploration
+  - Responsive design optimized for all screen sizes
+  - Export functionality for charts and data
 
-#### 🎛️ **Interactive Dashboard System**
-- **Custom Dashboard Builder**
-  - Grafana-style dashboard creation interface
-  - Drag-and-drop panel configuration
-  - Multiple chart types (line, bar, gauge, stat, table, heatmap)
-  - Real-time and historical view switching
-  - Dashboard templates and sharing system
-  - Per-user access control and permissions
+### 🔧 Technical Infrastructure
+- **📊 Metrics Collection System**
+  - Automated data collection from Docker stats API with configurable intervals
+  - Efficient database schema for time-series data storage and retrieval
+  - Background task processing with Celery for data aggregation
+  - Redis integration for real-time data caching and session management
+  - Comprehensive error handling and data validation
 
-- **Chart.js Integration**
-  - Interactive time-series visualizations
-  - Responsive and mobile-friendly charts
-  - Real-time data updates and auto-refresh
-  - Multiple measurement overlay support
-  - Zoom and pan capabilities for detailed analysis
+- **🎯 Performance Optimizations**
+  - Database query optimization for large time-series datasets
+  - Intelligent data aggregation to reduce storage requirements
+  - Caching layer for frequently accessed analytics data
+  - Asynchronous data processing for improved user experience
+  - Memory-efficient data structures for real-time analytics
 
-#### 🔍 **Analytics Views & Reports**
-- **Analytics Dashboard**
-  - System overview with key performance indicators
-  - Resource usage trends visualization
-  - Service health scoring and alerts
-  - Quick action buttons for deep-dive analysis
+### 🛠 Management Commands
+- **collect_metrics** - Automated metrics collection with configurable parameters
+- **setup_sample_data** - Generate sample data for testing and demonstration
+- **cleanup_old_metrics** - Automated cleanup of historical data based on retention policies
 
-- **Historical Metrics View**
-  - Comprehensive time-series analysis
-  - Multiple measurement type support
-  - Custom granularity selection (5m, 1h, 6h, 1d)
-  - Data point filtering and search capabilities
-  - Export functionality with multiple formats
+### 🚀 API Enhancements
+- **Analytics API Endpoints**
+  - `/api/analytics/metrics/` - Historical metrics data with flexible filtering
+  - `/api/analytics/trends/` - Trend analysis and predictive insights
+  - `/api/analytics/export/` - Data export in multiple formats
+  - Enhanced existing APIs with analytics integration
 
-- **Predictive Analytics**
-  - 24-hour trend predictions with confidence intervals
-  - Machine learning-based anomaly detection
-  - Resource planning recommendations
-  - Visual confidence indicators and uncertainty bands
+### 📋 Database Schema Updates
+- **New Models**
+  - `ServiceMetric` - Time-series service performance data
+  - `NodeMetric` - Node-level resource utilization tracking
+  - `AlertRule` - Configurable alerting system
+  - `Dashboard` - Custom dashboard configurations
+  - `DashboardPanel` - Individual dashboard components
 
-### Enhanced Features
-
-#### 🗃️ **Database Models**
-- **Metric Model** - Time-series data storage with indexing
-- **Dashboard Model** - Custom dashboard configurations with sharing
-- **DashboardPanel Model** - Individual panel settings and positioning
-- **Enhanced admin interface** for metrics management
-
-#### 🔧 **Management Commands**
-- **collect_metrics** - Automated metrics collection with continuous mode
-- **setup_sample_data** - Generate realistic sample data for testing
-- **Flexible collection intervals** and measurement filtering
-
-#### 🎨 **User Interface Enhancements**
-- **Enhanced Navigation** - New analytics section with dedicated menu items
-- **Responsive Design** - Mobile-optimized analytics dashboards
-- **Dark Mode Ready** - Consistent theming across analytics components
-- **Loading States** - Progress indicators for data-intensive operations
-
-### Technical Improvements
-
-#### 🏗️ **Architecture**
-- **Separated Analytics Logic** - Dedicated analytics engine and dashboard views
-- **URL Namespace Organization** - Proper URL structure with 'dashboard:' namespace
-- **Template Organization** - Dedicated analytics templates with consistent styling
-- **API Endpoints** - RESTful APIs for metrics data and dashboard operations
-
-#### 📊 **Data Processing**
-- **Statistical Analysis** - Trend calculation, moving averages, and variance analysis
-- **Data Aggregation** - Efficient time-interval grouping and caching
-- **Performance Optimization** - Database indexing and query optimization
-- **Memory Management** - Efficient data handling for large time series
-
-#### 🔒 **Security & Access Control**
-- **Dashboard Permissions** - User-based access control for dashboards
-- **Data Export Security** - Controlled access to sensitive metrics data
-- **CSRF Protection** - Enhanced security for analytics API endpoints
-
-### Bug Fixes
-- Fixed URL namespace conflicts causing NoReverseMatch errors
-- Resolved template URL patterns across all dashboard components
-- Improved error handling for missing or invalid metrics data
-- Fixed measurement type validation in analytics views
-- Enhanced database connection handling for metrics collection
-
-### Dependencies Added
-- **Chart.js 4.0.0** - Advanced charting library for interactive visualizations
-- **InfluxDB Client** - Time-series database integration support
-- **Prometheus Client** - Metrics export and monitoring integration
-- **Django Celery Beat** - Scheduled task management for metrics collection
-
-### Migration Notes
-- **Database Migration Required** - New models for metrics and dashboards
-- **URL Configuration Update** - Dashboard namespace implementation
-- **Template Updates** - All dashboard URLs updated to use namespace
-- **Sample Data Available** - Use `setup_sample_data` command for testing
-
-### Performance Improvements
-- **Database Indexing** - Optimized queries for time-series data
-- **Caching Strategy** - Redis caching for frequently accessed metrics
-- **Data Pagination** - Efficient handling of large datasets
-- **Asynchronous Processing** - Background metrics collection
-
-## [1.2.0] - Version Management & Docker Compose Import
-
-### 🎉 **STABLE RELEASE** - Successfully Tested & Deployed
-
-**Production Testing Status**: ✅ **VERIFIED**
-- Deployed and tested on Ubuntu 24.04.3 LTS
-- 4-node Docker Swarm cluster (1 manager + 3 workers)
-- All features working correctly in production environment
+## [1.3.0] - 2025-08-24 - Enhanced Service Management & Authentication
 
 ### Added
-- **Version Management System**
-  - Version display in UI footer with git commit information
-  - Build information context processor for templates
-  - Git branch and commit date tracking
-  - Formatted version strings for display
+- **🔐 Complete Authentication System**
+  - User registration and login functionality
+  - Role-based access control (Admin, Manager, Viewer)
+  - User profile management
+  - Password change functionality
+  - Session management and security
 
-- **Docker Compose Import from Git**
-  - Import Docker Compose files directly from Git repositories
-  - Support for GitHub, GitLab, and other Git hosting services
-  - Automatic branch detection (main/master fallback)
-  - Parse and convert Compose services to Docker Swarm format
-  - Review interface with service validation and warnings
-  - Selective deployment of imported services
+- **👥 User Management**
+  - Admin interface for user management
+  - User creation, modification, and deactivation
+  - Role assignment and permission management  
+  - User activity logging
+  - API key management for programmatic access
 
-- **Enhanced Repository Support**
-  - Popular example repositories pre-configured
-  - Support for specific file paths within repositories
-  - Multiple compose file detection and processing
-  - Network and volume metadata extraction
-
-- **Management Commands**
-  - `test_compose_import` command for testing import functionality
-  - CLI testing of repository imports with detailed output
-  - Validation warnings and compatibility checks
-
-### Enhanced Features
-- **Service Management**
-  - "Import from Git" button added to Services page
-  - Streamlined workflow from import to deployment
-  - Better error handling and user feedback
-  - Session-based review process
-
-- **Error Handling Improvements**
-  - Specific error messages for different failure types
-  - Repository clone timeout handling
-  - Branch fallback mechanisms (main → master)
-  - File not found and access error handling
-
-### Technical Improvements
-- Added PyYAML and GitPython dependencies
-- Temporary directory management for git operations
-- Compose service validation for Swarm compatibility
-- Enhanced logging for debugging import issues
-
-### Bug Fixes
-- Fixed repository cloning with various branch configurations
-- Improved compose file detection algorithms
-- Better handling of build contexts and unsupported features
-- Repository cleanup on failed operations
-
-### Testing & Validation
-- Successfully tested with docker/awesome-compose repository
-- WordPress + MariaDB stack import and deployment verified
-- Multiple service import with validation warnings
-- Command-line testing tools for troubleshooting
-
-## [1.1.0-beta] - Authentication & Settings Enhancement
-
-### Added
-- **Admin Settings Dashboard**
-  - Comprehensive settings interface for administrators
-  - User management with quick actions (activate/deactivate users)
-  - Security settings configuration panel
-  - System information and maintenance tools
-  - Real-time audit log monitoring
-
-- **Enhanced User Interface**
-  - User dropdown menu in sidebar with profile access
-  - Admin-only navigation items for user management
-  - Settings page with tabbed interface (Users, Security, System, Audit)
-  - Quick user statistics and system uptime display
-
-- **User Management Improvements**
-  - Toggle user active status from settings page
-  - Export audit logs as CSV functionality
-  - System uptime API endpoint
-  - Enhanced user statistics tracking
-
-- **Version Management**
-  - Version file tracking (1.1.0-beta)
-  - System information display in settings
-  - Application version shown in UI
-
-### Enhanced Features
-- **Security Enhancements**
-  - Password policy configuration interface
-  - Session management settings
-  - API security controls
-  - Login attempt monitoring
-
-- **System Maintenance**
-  - Database cleanup tools
-  - Service restart capabilities
-  - Log export functionality
+- **⚙️ Admin Settings Dashboard**
+  - System configuration interface
+  - Version information display
+  - User management controls
   - System health monitoring
+  - Audit log viewing
 
-### Technical Improvements
-- Updated Django middleware configuration
-- Enhanced error handling for system operations
-- Improved navigation structure
-- Better user experience with role-based menus
+- **🔑 API Authentication**
+  - API key generation and management
+  - Secure API endpoints with authentication
+  - Role-based API access control
+  - API usage tracking and logging
 
-### Bug Fixes
-- Fixed allauth middleware configuration
-- Resolved authentication flow issues
-- Improved error handling in user management
+### Enhanced
+- **🚀 Service Management**
+  - Improved service creation with validation
+  - Enhanced service scaling capabilities
+  - Better error handling and user feedback
+  - Service health monitoring improvements
 
-## [1.0.0] - Initial Release
+- **🎨 User Interface**
+  - Login/logout functionality in navigation
+  - User profile dropdown menu
+  - Protected routes with authentication checks
+  - Enhanced form validation and error display
+
+### Technical
+- **📊 Models & Database**
+  - Extended User model with roles and profiles
+  - API key model for authentication
+  - Audit logging system
+  - Database migrations for new features
+
+- **🔒 Security**
+  - CSRF protection on all forms
+  - Secure session management
+  - Password hashing and validation
+  - API key authentication middleware
+
+## [1.2.0] - 2025-08-24 - Docker Compose Import & Version Management
 
 ### Added
-- Complete Docker Swarm management web interface
-- Real-time cluster monitoring dashboard
-- Service management capabilities (create, restart, scale, remove)
-- Node monitoring and status tracking
-- Bootstrap 5 responsive web interface
-- Django backend with REST API endpoints
-- WebSocket integration for real-time updates
-- Automated setup script for Ubuntu 24.04
-- Systemd service integration
-- Docker containerization support
-- Comprehensive documentation and setup guides
+- **📦 Docker Compose Import System**
+  - Import services directly from Git repositories
+  - Support for GitHub, GitLab, and other Git platforms
+  - Popular template library with pre-configured examples
+  - Service validation and compatibility checking
+  - Batch deployment capabilities
 
-### Core Features
-- **Dashboard Interface**
-  - Cluster overview with real-time metrics
-  - System resource monitoring (CPU, Memory)
-  - Service and node count displays
-  - Swarm status indicators
-  - Auto-refresh functionality
+- **🏷️ Version Management**
+  - Integrated version tracking with Git
+  - Version display in UI
+  - Changelog integration
+  - Release management
 
-- **Service Management**
-  - Create services with custom configurations
-  - Scale services up/down with replica control
-  - Restart services for maintenance
-  - Remove services when no longer needed
-  - Service health and status monitoring
-  - Task distribution tracking across nodes
-  - Port mapping configuration
-  - Environment variable management
+- **🎯 Popular Templates**
+  - WordPress with MySQL
+  - NGINX with PHP and MySQL (LEMP stack)  
+  - Nextcloud with Redis and MariaDB
+  - Prometheus with Grafana monitoring stack
+  - PostgreSQL with Adminer
 
-- **Node Management**
-  - View all cluster nodes
-  - Monitor node roles (manager/worker)
-  - Track node availability and health status
-  - Resource allocation overview
-  - Leader node identification
+### Enhanced
+- **🔧 Service Management**
+  - Enhanced service creation workflow
+  - Improved error handling and validation
+  - Better user feedback and notifications
+  - Service template system
 
-- **API Endpoints**
-  - RESTful API for programmatic access
+- **📱 User Interface**
+  - Import compose interface
+  - Service validation warnings
+  - Template selection gallery
+  - Enhanced service creation forms
+
+### Technical
+- **🛠 Infrastructure**
+  - Git integration for repository cloning
+  - Docker Compose parsing and validation
+  - Temporary file management
+  - Error handling improvements
+
+## [1.1.0-beta] - 2025-08-23 - Authentication & Authorization
+
+### Added
+- **🔐 Authentication System**
+  - User login and logout functionality
+  - Session management
+  - Password-based authentication
+  - User registration (admin-only)
+
+- **👤 User Management**
+  - User profile system
+  - Role-based access control
+  - Admin interface for user management
+  - User activity tracking
+
+- **🔑 Authorization**
+  - Role-based permissions (Admin, Manager, Viewer)
+  - Protected routes and views
+  - API authentication
+  - Resource-level access control
+
+### Enhanced
+- **📊 Dashboard**
+  - User-specific dashboard views
+  - Role-based feature access
+  - Personalized interface elements
+  - Secure data display
+
+- **🎨 Interface**
+  - Login/logout interface
+  - User profile management
+  - Protected navigation elements
+  - Enhanced security indicators
+
+### Technical
+- **🔒 Security**
+  - CSRF protection
+  - Secure session handling
+  - Password encryption
+  - Authentication middleware
+
+## [1.0.0] - 2025-08-22 - Initial Release
+
+### 🎉 Core Features
+- **🐳 Docker Swarm Management**
+  - Real-time service monitoring and management
+  - Node discovery and status tracking
+  - Container lifecycle management
+  - Swarm cluster overview
+
+- **⚡ Real-time Updates**
+  - WebSocket integration for live data
+  - Auto-refreshing dashboards
+  - Live service status updates
+  - Real-time resource monitoring
+
+- **🎨 Modern Interface**
+  - Bootstrap 5 responsive design
+  - Interactive dashboards
+  - Mobile-optimized layout
+  - Intuitive navigation
+
+- **🔧 Service Operations**
+  - Create, start, stop, restart services
+  - Scale services up and down
+  - Remove services safely
+  - Service health monitoring
+
+- **📊 Monitoring**
+  - System resource tracking
+  - Service performance metrics
+  - Node health monitoring
+  - Container statistics
+
+- **🌐 API Endpoints**
+  - RESTful API for automation
   - Service management endpoints
-  - Node information endpoints
-  - System information endpoints
-  - JSON response format
+  - Node information API
+  - System status endpoints
 
-- **Real-time Features**
-  - WebSocket connections for live updates
-  - Automatic dashboard refresh
-  - Real-time service status changes
-  - Live node status monitoring
-  - Toast notifications for user actions
-
-### Technical Implementation
-- **Backend Technologies**
-  - Django 4.2 web framework
-  - Python 3.11 compatibility
+### Technical Foundation
+- **⚙️ Backend**
+  - Django web framework
   - Docker Python SDK integration
-  - Redis for WebSocket and caching
-  - SQLite database (with PostgreSQL support)
-  - Django Channels for WebSocket support
+  - WebSocket support with channels
+  - Redis for session management
 
-- **Frontend Technologies**
-  - Bootstrap 5 for responsive design
-  - Modern JavaScript (ES6+)
-  - WebSocket client integration
-  - Interactive dashboard components
-  - Mobile-responsive layout
+- **🎨 Frontend**
+  - Bootstrap 5 UI framework
+  - JavaScript for interactivity
+  - Chart.js for visualizations
+  - Responsive design principles
 
-- **Infrastructure**
-  - Ubuntu 24.04 LTS support
-  - Systemd service configuration
-  - Docker container deployment
-  - Nginx reverse proxy configuration
-  - SSL/TLS ready setup
+- **🗄️ Database**
+  - SQLite for development
+  - PostgreSQL support for production
+  - Migration system
+  - Model-based data management
 
-### Security Features
-- CSRF protection enabled
-- Environment-based configuration
-- Input validation and sanitization
-- Non-root Docker container execution
-- Secure secret key generation
-
-### Development Tools
-- Comprehensive test structure
-- Development environment setup
-- Code formatting and linting
-- Docker development workflow
-- Git workflow integration
-
-### Documentation
-- Complete README with setup instructions
-- API documentation
-- Troubleshooting guide
-- Production deployment guide
-- Security considerations
-- Development setup guide
-
-## [0.9.0] - Beta Testing Phase
-
-### Added
-- Initial Docker connection implementation
-- Basic service listing functionality
-- Preliminary web interface structure
-- Core Docker Swarm integration
-
-### Fixed
-- Docker connection issues with TLS configuration
-- Service creation API parameter handling
-- WebSocket connection stability
-
-### Changed
-- Improved Docker client initialization
-- Simplified service creation workflow
-- Enhanced error handling and logging
-
-## [0.5.0] - Alpha Development
-
-### Added
-- Project structure and Django setup
-- Basic Docker utilities framework
-- Initial web interface mockups
-- Core API endpoint structure
-
-### Technical Debt
-- WebSocket 404 errors (minor issue, doesn't affect functionality)
-- Limited error handling in some edge cases
-- Basic logging implementation (could be enhanced)
-
-## Known Issues
-
-### Minor Issues
-- WebSocket connection occasionally shows 404 errors in logs
-- Limited service template support
-- Basic authentication (Django admin only)
-
-### Future Improvements
-- Enhanced logging and audit trails
-- Multi-user authentication system
-- Service deployment templates
-- Network management interface
-- Backup and restore functionality
-
-## Testing Status
-
-### Production Testing Completed
-- ✅ Ubuntu 24.04.3 LTS deployment
-- ✅ 4-node Docker Swarm cluster (1 manager + 3 workers)
-- ✅ 36 CPUs, 56GB RAM total cluster resources
-- ✅ Service creation, scaling, restart, removal
-- ✅ All API endpoints functional
-- ✅ Web interface accessibility
-- ✅ Real-time monitoring capabilities
-- ✅ Systemd service integration
-
-### Performance Metrics
-- Application startup time: ~3-5 seconds
-- API response time: <100ms for most endpoints
-- WebSocket connection establishment: <1 second
-- Service operations: 1-3 seconds depending on cluster size
-- Memory usage: ~70MB per application instance
-
-## Dependencies
-
-### System Requirements
-- Ubuntu 24.04 LTS (tested and recommended)
-- Python 3.8+ (developed with 3.11)
-- Docker Engine 20.10+
-- Redis 6.0+
-- Minimum 1GB RAM, 2GB disk space
-
-### Python Dependencies
-- Django 4.2.7
-- docker 6.1.3
-- channels 4.0.0
-- redis 5.0.1
-- Bootstrap integration packages
-- Production deployment tools
-
-## Backwards Compatibility
-
-### Version Support
-- Docker API compatibility with Docker Engine 20.10+
-- Python 3.8+ compatibility maintained
-- Django LTS version support
-- Ubuntu LTS version focus
-
-## Migration Notes
-
-### From Development to Production
-- Environment configuration via .env files
-- Database migration support
-- Static file collection
-- Service deployment configuration
-- SSL/TLS certificate setup
-
-## Contributors
-
-- Initial development and architecture design
-- Docker Swarm integration implementation
-- Web interface development
-- Production testing and deployment
-- Documentation and setup automation
+- **🚀 Deployment**
+  - Production-ready configuration
+  - systemd service integration
+  - Docker support
+  - Reverse proxy compatibility

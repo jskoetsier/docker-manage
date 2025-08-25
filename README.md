@@ -4,12 +4,14 @@ A comprehensive web-based management interface for Docker Swarm clusters built w
 
 ## Features
 
-### 🔍 **Monitoring & Management**
-- **Real-time cluster monitoring** with live status updates
+### 🔍 **Enhanced Real-Time Monitoring & Management**
+- **Real-time cluster monitoring** with live status updates and interactive charts
+- **Cluster resource aggregation** - Total CPU, memory, and container counts across all nodes
+- **Live performance charts** - CPU, Memory, and Load Average with Chart.js visualizations
 - **Service lifecycle management** - Create, deploy, scale, restart, and remove services
 - **Node monitoring** - View cluster topology, roles, and resource allocation
-- **Health monitoring** - Track container health and service status
-- **Resource tracking** - Monitor CPU, memory, and storage usage
+- **Health monitoring** - Track container health and service status with color-coded progress bars
+- **Resource tracking** - Monitor CPU, memory, and storage usage with real-time updates
 
 ### 📊 **Historical Metrics & Analytics**
 - **Time-series data collection** - Automated metrics collection from Docker stats API
@@ -439,7 +441,7 @@ This project includes comprehensive documentation:
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version information.
 
-**Current Version: v1.5.0** - Complete Stack Management System with CRUD operations, YAML editor, Git import, and direct deployment
+**Current Version: v1.5.1** - Enhanced Real-Time Monitoring Dashboard with cluster resources and live charts
 
 ## License
 
