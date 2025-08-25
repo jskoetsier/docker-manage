@@ -5,6 +5,29 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2025-08-25 - User Delete Template Fix
+
+### Fixed
+- **Template Missing Error**
+  - Fixed `TemplateDoesNotExist` error for `accounts/user_confirm_delete.html` 
+  - Created missing user deletion confirmation template
+  - Maintained consistent UI design with existing delete confirmation pages
+  - Proper user information display (username, full name, email, role, status, join date)
+  - Warning message about permanent deletion and data loss
+  - CSRF protection and proper form handling
+
+### Technical Details
+- **Template System Enhancement**
+  - Added `/templates/accounts/user_confirm_delete.html`
+  - Bootstrap 5 styling with danger-themed confirmation dialog
+  - Responsive design with proper navigation links
+  - Context variable support for `profile_user` object
+
+### Deployment
+- Successfully deployed to production server (192.168.1.240)
+- Service restart completed via `swarm-manager` systemd service
+- Verified fix with HTTP 302 responses (proper redirect to login)
+
 ## [1.5.1] - 2025-08-25 - Enhanced Real-Time Monitoring Dashboard
 
 ### 🚀 Major Dashboard Enhancements

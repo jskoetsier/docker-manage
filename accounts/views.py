@@ -334,7 +334,7 @@ def settings_view(request):
         docker_version = 'Unknown'
 
     context = {
-        'version': '1.1.0',
+        'version': '1.5.2',
         'django_version': django.get_version(),
         'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         'database_info': connection.vendor.title(),
