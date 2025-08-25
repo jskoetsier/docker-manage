@@ -9,7 +9,7 @@
         Import Docker Compose
     </h1>
     <div class="btn-group">
-        <a href="{% url 'services' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'dashboard:services' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
             Back to Services
         </a>
@@ -58,7 +58,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'services' %}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'dashboard:services' %}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-cloud-download"></i>
                             Import Compose File

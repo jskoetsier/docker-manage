@@ -9,7 +9,7 @@
         Review Compose Import
     </h1>
     <div class="btn-group">
-        <a href="{% url 'import_compose' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'dashboard:import_compose' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
             Back to Import
         </a>
@@ -253,7 +253,7 @@
                     <i class="bi bi-exclamation-triangle display-4 text-warning"></i>
                     <h3 class="mt-3 text-muted">No Services Found</h3>
                     <p class="text-muted">No valid services were found in the imported compose files.</p>
-                    <a href="{% url 'import_compose' %}" class="btn btn-primary">
+                    <a href="{% url 'dashboard:import_compose' %}" class="btn btn-primary">
                         Try Again
                     </a>
                 </div>

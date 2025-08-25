@@ -9,7 +9,7 @@
         Docker Compose Stacks
     </h1>
     <div class="btn-group">
-        <a href="{% url 'import_compose' %}" class="btn btn-primary">
+        <a href="{% url 'dashboard:import_compose' %}" class="btn btn-primary">
             <i class="bi bi-cloud-download"></i>
             Import from Git
         </a>
@@ -107,7 +107,7 @@
             <h3 class="mt-3 text-muted">No Docker Compose Stacks</h3>
             <p class="text-muted">Import compose files from Git repositories or create custom stacks.</p>
             <div class="d-flex justify-content-center gap-2">
-                <a href="{% url 'import_compose' %}" class="btn btn-primary">
+                <a href="{% url 'dashboard:import_compose' %}" class="btn btn-primary">
                     <i class="bi bi-cloud-download"></i>
                     Import from Git
                 </a>

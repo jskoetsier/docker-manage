@@ -9,7 +9,7 @@
         Service Logs: {{ service.Spec.Name }}
     </h1>
     <div class="btn-group">
-        <a href="{% url 'service_detail' service_id %}" class="btn btn-outline-secondary">
+        <a href="{% url 'dashboard:service_detail' service_id %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
             Back to Service
         </a>
