@@ -14,7 +14,7 @@
             Back to Services
         </a>
         {% if 'compose_import' in request.session %}
-            <a href="{% url 'clear_compose_import' %}" class="btn btn-outline-warning">
+            <a href="{% url 'dashboard:clear_compose_import' %}" class="btn btn-outline-warning">
                 <i class="bi bi-x-circle"></i>
                 Clear Import
             </a>
