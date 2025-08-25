@@ -9,11 +9,11 @@
         Save as Docker Compose Stack
     </h1>
     <div class="btn-group">
-        <a href="{% url 'review_compose_import' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'dashboard:review_compose_import' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
             Back to Review
         </a>
-        <a href="{% url 'clear_compose_import' %}" class="btn btn-outline-warning">
+        <a href="{% url 'dashboard:clear_compose_import' %}" class="btn btn-outline-warning">
             <i class="bi bi-x-circle"></i>
             Clear Import
         </a>
@@ -110,7 +110,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
-                <a href="{% url 'review_compose_import' %}" class="btn btn-secondary">Cancel</a>
+                <a href="{% url 'dashboard:review_compose_import' %}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save"></i>
                     Save Stack
