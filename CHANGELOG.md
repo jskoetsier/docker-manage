@@ -5,6 +5,28 @@ All notable changes to the Docker Swarm Manager project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-08-25 - Predictive Analytics Bug Fix
+
+### Fixed
+- **Template Syntax Error in Predictive Analytics**
+  - Fixed Django template syntax error `Could not parse the remainder: '==metric_type'`
+  - Corrected template comparison operators from `value==variable` to `value == variable`
+  - Added custom `multiply` template filter for percentage calculations
+  - Resolved `Invalid filter: 'multiply'` error by creating `dashboard_filters.py`
+  - Updated predictive analytics template to properly load custom filters
+
+### Technical Improvements
+- **Template System Enhancement**
+  - Created `/dashboard/templatetags/dashboard_filters.py` with reusable filters
+  - Added proper Django template tag loading (`{% load dashboard_filters %}`)
+  - Implemented safe mathematical operations in templates with error handling
+  - Enhanced template debugging and error reporting
+
+### Deployment
+- Successfully deployed to production server (192.168.1.240)
+- Verified fix with HTTP 200 responses for predictive analytics page
+- No breaking changes or database migrations required
+
 ## [1.4.0] - 2025-08-25 - Historical Metrics & Analytics Dashboard
 
 ### 🎉 **MAJOR ANALYTICS RELEASE** - Advanced Monitoring & Intelligence
