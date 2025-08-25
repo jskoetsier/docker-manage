@@ -76,10 +76,10 @@
 
                 <div class="d-grid gap-2">
                     <div class="btn-group" role="group">
-                        <a href="{% url 'stack_detail' stack.id %}" class="btn btn-outline-primary btn-sm">
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewStack({{ stack.id }})">
                             <i class="bi bi-eye"></i>
                             View
-                        </a>
+                        </button>
                         <button class="btn btn-outline-secondary btn-sm" onclick="editStack({{ stack.id }})">
                             <i class="bi bi-pencil"></i>
                             Edit
@@ -166,8 +166,12 @@ services:
 
 {% block extra_js %}
 <script>
+    function viewStack(stackId) {
+        showToast('Stack detail view is not yet implemented. Use Edit to view/modify the stack.', 'info');
+    }
+
     function editStack(stackId) {
-        window.location.href = `/stacks/${stackId}/edit/`;
+        showToast('Stack editing is not yet implemented.', 'info');
     }
 
     function deployStack(stackId) {
@@ -175,7 +179,7 @@ services:
             return;
         }
 
-        window.location.href = `/stacks/${stackId}/deploy/`;
+        showToast('Stack deployment is not yet implemented.', 'info');
     }
 
     function deleteStack(stackId, stackName) {
@@ -183,26 +187,7 @@ services:
             return;
         }
 
-        fetch(`/stacks/${stackId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showToast('Error deleting stack', 'danger');
-            console.error('Error:', error);
-        });
+        showToast('Stack deletion is not yet implemented.', 'info');
     }
 </script>
 {% endblock %}
