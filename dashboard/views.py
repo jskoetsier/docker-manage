@@ -38,6 +38,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "swarm_active": docker_manager.is_swarm_active(),
                 "swarm_info": docker_manager.get_swarm_info(),
                 "system_info": docker_manager.get_system_info(),
+                "cluster_resources": docker_manager.get_cluster_resources(),
                 "nodes": docker_manager.get_nodes(),
                 "services": docker_manager.get_services(),
             }
@@ -216,6 +217,20 @@ def api_system_info(request):
             "swarm_active": docker_manager.is_swarm_active(),
         }
     )
+
+
+def api_cluster_resources(request):
+    """API endpoint for cluster resources"""
+    docker_manager = DockerSwarmManager()
+    cluster_resources = docker_manager.get_cluster_resources()
+    return JsonResponse(cluster_resources)
+
+
+def api_cluster_stats(request):
+    """API endpoint for real-time cluster statistics"""
+    docker_manager = DockerSwarmManager()
+    cluster_stats = docker_manager.get_cluster_stats()
+    return JsonResponse(cluster_stats)
 
 
 def create_service_view(request):

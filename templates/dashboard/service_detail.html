@@ -43,18 +43,18 @@
                             <dt class="col-sm-4">Mode:</dt>
                             <dd class="col-sm-8">
                                 {% if service.Spec.Mode.Replicated %}
-                                    <span class="badge bg-info">Replicated</span>
+                                <span class="badge bg-info">Replicated</span>
                                 {% else %}
-                                    <span class="badge bg-warning">Global</span>
+                                <span class="badge bg-warning">Global</span>
                                 {% endif %}
                             </dd>
 
                             <dt class="col-sm-4">Replicas:</dt>
                             <dd class="col-sm-8">
                                 {% if service.Spec.Mode.Replicated %}
-                                    {{ service.Spec.Mode.Replicated.Replicas }}
+                                {{ service.Spec.Mode.Replicated.Replicas }}
                                 {% else %}
-                                    Global (1 per node)
+                                Global (1 per node)
                                 {% endif %}
                             </dd>
                         </dl>
@@ -90,15 +90,18 @@
                         <i class="bi bi-file-text"></i>
                         View Logs
                     </a>
-                    <button class="btn btn-outline-primary" onclick="restartService('{{ service.ID }}', '{{ service.Spec.Name }}')">
+                    <button class="btn btn-outline-primary"
+                        onclick="restartService('{{ service.ID }}', '{{ service.Spec.Name }}')">
                         <i class="bi bi-arrow-clockwise"></i>
                         Restart Service
                     </button>
-                    <button class="btn btn-outline-info" onclick="showScaleModal('{{ service.ID }}', '{{ service.Spec.Name }}', {% if service.Spec.Mode.Replicated %}{{ service.Spec.Mode.Replicated.Replicas }}{% else %}1{% endif %})">
+                    <button class="btn btn-outline-info"
+                        onclick="showScaleModal('{{ service.ID }}', '{{ service.Spec.Name }}', {% if service.Spec.Mode.Replicated %}{{ service.Spec.Mode.Replicated.Replicas }}{% else %}1{% endif %})">
                         <i class="bi bi-arrows-angle-expand"></i>
                         Scale Service
                     </button>
-                    <button class="btn btn-outline-danger" onclick="removeService('{{ service.ID }}', '{{ service.Spec.Name }}')">
+                    <button class="btn btn-outline-danger"
+                        onclick="removeService('{{ service.ID }}', '{{ service.Spec.Name }}')">
                         <i class="bi bi-trash"></i>
                         Remove Service
                     </button>
@@ -196,53 +199,53 @@
             </div>
             <div class="card-body">
                 {% if tasks %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Task ID</th>
-                                    <th>Node</th>
-                                    <th>State</th>
-                                    <th>Desired State</th>
-                                    <th>Created</th>
-                                    <th>Updated</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for task in tasks %}
-                                <tr>
-                                    <td><code>{{ task.ID|truncatechars:12 }}</code></td>
-                                    <td>{{ task.NodeID|truncatechars:12 }}</td>
-                                    <td>
-                                        {% if task.Status.State == 'running' %}
-                                            <span class="badge bg-success">Running</span>
-                                        {% elif task.Status.State == 'pending' %}
-                                            <span class="badge bg-warning">Pending</span>
-                                        {% elif task.Status.State == 'failed' %}
-                                            <span class="badge bg-danger">Failed</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ task.Status.State|title }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ task.DesiredState|title }}</span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ task.CreatedAt|date:"M d, H:i" }}</small>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ task.UpdatedAt|date:"M d, H:i" }}</small>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Node</th>
+                                <th>State</th>
+                                <th>Desired State</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td><code>{{ task.ID|truncatechars:12 }}</code></td>
+                                <td>{{ task.NodeID|truncatechars:12 }}</td>
+                                <td>
+                                    {% if task.Status.State == 'running' %}
+                                    <span class="badge bg-success">Running</span>
+                                    {% elif task.Status.State == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% elif task.Status.State == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ task.Status.State|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ task.DesiredState|title }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ task.CreatedAt|date:"M d, H:i" }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ task.UpdatedAt|date:"M d, H:i" }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-list-task display-4"></i>
-                        <p class="mt-2">No tasks found for this service</p>
-                    </div>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-list-task display-4"></i>
+                    <p class="mt-2">No tasks found for this service</p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -284,7 +287,7 @@
     let currentServiceId = null;
     let scaleModal = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         scaleModal = new bootstrap.Modal(document.getElementById('scaleModal'));
     });
 
@@ -303,19 +306,19 @@
                 'Content-Type': 'application/json',
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                showToast(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showToast('Error restarting service', 'danger');
-            console.error('Error:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showToast('Error restarting service', 'danger');
+                console.error('Error:', error);
+            });
     }
 
     function showScaleModal(serviceId, serviceName, currentReplicas) {
@@ -342,20 +345,20 @@
                 replicas: replicas
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message, 'success');
-                scaleModal.hide();
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                showToast(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showToast('Error scaling service', 'danger');
-            console.error('Error:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    scaleModal.hide();
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showToast('Error scaling service', 'danger');
+                console.error('Error:', error);
+            });
     }
 
     function removeService(serviceId, serviceName) {
@@ -369,19 +372,19 @@
                 'Content-Type': 'application/json',
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message, 'success');
-                setTimeout(() => window.location.href = '/services/', 2000);
-            } else {
-                showToast(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showToast('Error removing service', 'danger');
-            console.error('Error:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    setTimeout(() => window.location.href = '/services/', 2000);
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showToast('Error removing service', 'danger');
+                console.error('Error:', error);
+            });
     }
 </script>
 {% endblock %}

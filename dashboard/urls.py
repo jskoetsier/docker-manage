@@ -56,6 +56,8 @@ urlpatterns = [
     path("api/containers/<str:container_id>/logs/", views.api_container_logs, name="api_container_logs"),
     path("api/nodes/", views.api_nodes, name="api_nodes"),
     path("api/system/", views.api_system_info, name="api_system_info"),
+    path("api/cluster/resources/", views.api_cluster_resources, name="api_cluster_resources"),
+    path("api/cluster/stats/", views.api_cluster_stats, name="api_cluster_stats"),
     path("api/services/create/", views.create_service, name="api_create_service"),
     
     # API endpoints - New Analytics and Dashboard APIs

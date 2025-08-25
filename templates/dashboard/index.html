@@ -133,37 +133,131 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-cpu"></i>
-                    System Resources
+                    <i class="bi bi-hdd-stack"></i>
+                    {% if swarm_active %}Cluster Resources{% else %}System Resources{% endif %}
                 </h5>
+                <span class="badge bg-{% if swarm_active %}success{% else %}secondary{% endif %}">
+                    {% if swarm_active %}Swarm Mode{% else %}Standalone{% endif %}
+                </span>
             </div>
             <div class="card-body">
+                {% if cluster_resources %}
                 <dl class="row">
-                    <dt class="col-sm-4">CPU Cores:</dt>
-                    <dd class="col-sm-8">{{ system_info.cpus|default:0 }}</dd>
-
-                    <dt class="col-sm-4">Memory:</dt>
-                    <dd class="col-sm-8" id="total-memory">
-                        {% if system_info.memory %}
-                            {{ system_info.memory|filesizeformat }}
-                        {% else %}
-                            N/A
+                    {% if swarm_active %}
+                        <dt class="col-sm-5">Total Nodes:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-primary">{{ cluster_resources.total_nodes }}</span>
+                            <small class="text-muted">
+                                ({{ cluster_resources.manager_nodes }}M, {{ cluster_resources.worker_nodes }}W)
+                            </small>
+                        </dd>
+                    {% endif %}
+                      
+                    <dt class="col-sm-5">CPU Cores:</dt>
+                    <dd class="col-sm-7">
+                        <strong>{{ cluster_resources.total_cpus }}</strong>
+                        {% if cluster_resources.cluster_utilization.cpu_percent %}
+                            <small class="text-muted">({{ cluster_resources.cluster_utilization.cpu_percent }}% used)</small>
                         {% endif %}
                     </dd>
-
-                    <dt class="col-sm-4">Docker Version:</dt>
-                    <dd class="col-sm-8">{{ system_info.server_version|default:"N/A" }}</dd>
-
-                    <dt class="col-sm-4">OS:</dt>
-                    <dd class="col-sm-8">{{ system_info.operating_system|default:"N/A" }}</dd>
+                      
+                    <dt class="col-sm-5">Memory:</dt>
+                    <dd class="col-sm-7">
+                        <strong>{{ cluster_resources.total_memory_gb }} GB</strong>
+                        {% if cluster_resources.cluster_utilization.memory_percent %}
+                            <small class="text-muted">({{ cluster_resources.cluster_utilization.memory_percent }}% used)</small>
+                        {% endif %}
+                    </dd>
+                      
+                    <dt class="col-sm-5">Containers:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-success">{{ cluster_resources.running_containers }}</span>
+                        <small class="text-muted">/ {{ cluster_resources.total_containers }} total</small>
+                    </dd>
+                      
+                    <dt class="col-sm-5">Docker Version:</dt>
+                    <dd class="col-sm-7">{{ system_info.server_version|default:"N/A" }}</dd>
                 </dl>
+                  
+                {% if cluster_resources.cluster_utilization %}
+                <!-- Resource Utilization Progress Bars -->
+                <div class="mt-3">
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="fw-bold">CPU Usage</small>
+                            <small>{{ cluster_resources.cluster_utilization.cpu_percent }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{% if cluster_resources.cluster_utilization.cpu_percent > 80 %}danger{% elif cluster_resources.cluster_utilization.cpu_percent > 60 %}warning{% else %}success{% endif %}" 
+                                 style="width: {{ cluster_resources.cluster_utilization.cpu_percent }}%"></div>
+                        </div>
+                    </div>
+                      
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="fw-bold">Memory Usage</small>
+                            <small>{{ cluster_resources.cluster_utilization.memory_percent }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{% if cluster_resources.cluster_utilization.memory_percent > 80 %}danger{% elif cluster_resources.cluster_utilization.memory_percent > 60 %}warning{% else %}info{% endif %}" 
+                                 style="width: {{ cluster_resources.cluster_utilization.memory_percent }}%"></div>
+                        </div>
+                    </div>
+                      
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="fw-bold">Disk Usage</small>
+                            <small>{{ cluster_resources.cluster_utilization.disk_percent }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{% if cluster_resources.cluster_utilization.disk_percent > 80 %}danger{% elif cluster_resources.cluster_utilization.disk_percent > 60 %}warning{% else %}primary{% endif %}" 
+                                 style="width: {{ cluster_resources.cluster_utilization.disk_percent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                  
+                {% else %}
+                <p class="text-muted">Cluster information not available</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 {% endif %}
+
+<!-- Real-time Cluster Load Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cpu"></i>
+                    Real-time CPU & Memory Usage
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="realTimeChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-activity"></i>
+                    System Load Average
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="loadAverageChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Recent Services -->
 <div class="row">
@@ -280,7 +374,198 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Real-time charts variables
+    let realTimeChart, loadAverageChart;
+    let maxDataPoints = 20;
+    
+    // Chart data storage
+    let chartData = {
+        labels: [],
+        cpu: [],
+        memory: [],
+        load1: [],
+        load5: [],
+        load15: []
+    };
+
+    // Initialize real-time charts
+    function initializeCharts() {
+        // Real-time CPU & Memory Chart
+        const realTimeCtx = document.getElementById('realTimeChart').getContext('2d');
+        realTimeChart = new Chart(realTimeCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'CPU Usage (%)',
+                    data: chartData.cpu,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: 'Memory Usage (%)',
+                    data: chartData.memory,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        display: false
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                animation: {
+                    duration: 750
+                }
+            }
+        });
+
+        // Load Average Chart
+        const loadCtx = document.getElementById('loadAverageChart').getContext('2d');
+        loadAverageChart = new Chart(loadCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: '1 min',
+                    data: chartData.load1,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: '5 min',
+                    data: chartData.load5,
+                    borderColor: 'rgb(255, 205, 86)',
+                    backgroundColor: 'rgba(255, 205, 86, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: '15 min',
+                    data: chartData.load15,
+                    borderColor: 'rgb(153, 102, 255)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(2);
+                            }
+                        }
+                    },
+                    x: {
+                        display: false
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                animation: {
+                    duration: 750
+                }
+            }
+        });
+    }
+
+    // Update charts with new data
+    function updateCharts(stats) {
+        const now = new Date();
+        const timeLabel = now.toLocaleTimeString();
+        
+        // Add new data point
+        chartData.labels.push(timeLabel);
+        chartData.cpu.push(stats.cpu_percent || 0);
+        chartData.memory.push(stats.memory_percent || 0);
+        chartData.load1.push(stats.load_1min || 0);
+        chartData.load5.push(stats.load_5min || 0);
+        chartData.load15.push(stats.load_15min || 0);
+        
+        // Limit data points
+        if (chartData.labels.length > maxDataPoints) {
+            chartData.labels.shift();
+            chartData.cpu.shift();
+            chartData.memory.shift();
+            chartData.load1.shift();
+            chartData.load5.shift();
+            chartData.load15.shift();
+        }
+        
+        // Update charts
+        realTimeChart.update('none');
+        loadAverageChart.update('none');
+        
+        // Update progress bars in cluster resources section
+        updateProgressBars(stats);
+    }
+
+    // Update progress bars
+    function updateProgressBars(stats) {
+        // Update CPU progress bar
+        const cpuProgress = document.querySelector('.progress-bar[style*="' + '{{ cluster_resources.cluster_utilization.cpu_percent }}' + '"]');
+        if (cpuProgress && stats.cpu_percent !== undefined) {
+            cpuProgress.style.width = stats.cpu_percent + '%';
+            const cpuText = cpuProgress.closest('.mb-2').querySelector('small:last-child');
+            if (cpuText) cpuText.textContent = stats.cpu_percent + '%';
+        }
+        
+        // Update memory progress bar  
+        const memoryProgress = document.querySelector('.progress-bar.bg-info, .progress-bar.bg-warning');
+        if (memoryProgress && stats.memory_percent !== undefined) {
+            // Update memory progress bar color based on usage
+            memoryProgress.className = 'progress-bar ' + 
+                (stats.memory_percent > 80 ? 'bg-danger' : 
+                 stats.memory_percent > 60 ? 'bg-warning' : 'bg-info');
+            memoryProgress.style.width = stats.memory_percent + '%';
+            const memoryText = memoryProgress.closest('.mb-2').querySelector('small:last-child');
+            if (memoryText) memoryText.textContent = stats.memory_percent + '%';
+        }
+    }
+
+    // Fetch cluster stats
+    function fetchClusterStats() {
+        fetch('/api/cluster/stats/')
+            .then(response => response.json())
+            .then(stats => {
+                updateCharts(stats);
+            })
+            .catch(error => {
+                console.error('Error fetching cluster stats:', error);
+            });
+    }
+
+    // Legacy functions for backward compatibility
     function handleRealtimeUpdate(data) {
         if (data.type === 'services_update') {
             updateServicesCount(data.data.length);
@@ -378,5 +663,16 @@
             nodesList.appendChild(nodeDiv);
         });
     }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        
+        // Initial data fetch
+        fetchClusterStats();
+        
+        // Set up periodic updates every 5 seconds
+        setInterval(fetchClusterStats, 5000);
+    });
 </script>
 {% endblock %}

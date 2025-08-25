@@ -399,6 +399,151 @@ class DockerSwarmManager:
             logger.error(f"Error getting system info: {e}")
             return {}
 
+    def get_cluster_resources(self) -> Dict:
+        """Get aggregated resources from all nodes in the cluster"""
+        try:
+            if not self.client or not self.is_swarm_active():
+                # Return local system info if not in swarm mode
+                local_info = self.get_system_info()
+                return {
+                    "total_nodes": 1,
+                    "manager_nodes": 0,
+                    "worker_nodes": 1,
+                    "total_cpus": local_info.get("cpus", 0),
+                    "total_memory_gb": round(local_info.get("memory", 0) / (1024**3), 1),
+                    "total_containers": local_info.get("containers", 0),
+                    "running_containers": local_info.get("containers_running", 0),
+                    "nodes_ready": 1,
+                    "nodes_down": 0,
+                }
+
+            nodes = self.get_nodes()
+              
+            # Aggregate cluster resources
+            total_cpus = 0
+            total_memory_bytes = 0
+            manager_nodes = 0
+            worker_nodes = 0
+            nodes_ready = 0
+            nodes_down = 0
+
+            for node in nodes:
+                # Count node types
+                if node.get("role") == "manager":
+                    manager_nodes += 1
+                else:
+                    worker_nodes += 1
+                      
+                # Count node status
+                if node.get("status") == "ready":
+                    nodes_ready += 1
+                else:
+                    nodes_down += 1
+                      
+                # Aggregate resources
+                if "resources" in node:
+                    total_cpus += node["resources"].get("cpu", 0)
+                    total_memory_bytes += node["resources"].get("memory", 0) * (1024**3)  # Convert GB to bytes
+
+            # Get container counts from system info
+            system_info = self.get_system_info()
+
+            return {
+                "total_nodes": len(nodes),
+                "manager_nodes": manager_nodes,
+                "worker_nodes": worker_nodes,
+                "total_cpus": int(total_cpus),
+                "total_memory_gb": round(total_memory_bytes / (1024**3), 1),
+                "total_containers": system_info.get("containers", 0),
+                "running_containers": system_info.get("containers_running", 0),
+                "nodes_ready": nodes_ready,
+                "nodes_down": nodes_down,
+                "cluster_utilization": self._calculate_cluster_utilization(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting cluster resources: {e}")
+            return {}
+
+    def get_cluster_stats(self) -> Dict:
+        """Get real-time cluster statistics for charts"""
+        try:
+            if not self.client:
+                return {}
+
+            # Get basic system stats
+            system_info = self.get_system_info()
+              
+            # Calculate resource usage percentages
+            import psutil
+            import time
+              
+            # Get CPU usage (average over short period)
+            cpu_percent = psutil.cpu_percent(interval=1)
+              
+            # Get memory usage
+            memory = psutil.virtual_memory()
+            memory_percent = memory.percent
+              
+            # Get disk usage
+            disk = psutil.disk_usage('/')
+            disk_percent = (disk.used / disk.total) * 100
+              
+            # Get network stats
+            network = psutil.net_io_counters()
+              
+            # Get load average (Unix-like systems)
+            try:
+                load_avg = psutil.getloadavg()
+                load_1min = load_avg[0]
+                load_5min = load_avg[1]
+                load_15min = load_avg[2]
+            except (AttributeError, OSError):
+                # Windows doesn't have load average
+                load_1min = cpu_percent / 100
+                load_5min = cpu_percent / 100  
+                load_15min = cpu_percent / 100
+
+            return {
+                "timestamp": int(time.time() * 1000),  # JavaScript timestamp
+                "cpu_percent": round(cpu_percent, 1),
+                "memory_percent": round(memory_percent, 1),
+                "disk_percent": round(disk_percent, 1),
+                "load_1min": round(load_1min, 2),
+                "load_5min": round(load_5min, 2),
+                "load_15min": round(load_15min, 2),
+                "network_bytes_sent": network.bytes_sent,
+                "network_bytes_recv": network.bytes_recv,
+                "containers_running": system_info.get("containers_running", 0),
+                "services_count": len(self.get_services()),
+                "nodes_ready": len([n for n in self.get_nodes() if n.get("status") == "ready"]),
+            }
+        except Exception as e:
+            logger.error(f"Error getting cluster stats: {e}")
+            return {}
+
+    def _calculate_cluster_utilization(self) -> Dict:
+        """Calculate cluster resource utilization"""
+        try:
+            import psutil
+              
+            # Get current system utilization
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+              
+            return {
+                "cpu_percent": round(cpu_percent, 1),
+                "memory_percent": round(memory.percent, 1),
+                "disk_percent": round((disk.used / disk.total) * 100, 1),
+            }
+        except Exception as e:
+            logger.error(f"Error calculating cluster utilization: {e}")
+            return {
+                "cpu_percent": 0,
+                "memory_percent": 0,
+                "disk_percent": 0,
+            }
+
     def _extract_ports(self, endpoint_spec: Dict) -> List[Dict]:
         """Extract port information from service endpoint spec"""
         ports = []

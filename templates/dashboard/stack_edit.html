@@ -8,7 +8,8 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'dashboard:stacks' %}">Stacks</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'dashboard:stack_detail' stack.id %}">{{ stack.name }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:stack_detail' stack.id %}">{{ stack.name }}</a>
+                </li>
                 <li class="breadcrumb-item active">Edit</li>
             </ol>
         </nav>
@@ -37,16 +38,18 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
                         <label for="stack_name" class="form-label">Stack Name</label>
-                        <input type="text" class="form-control" id="stack_name" name="name" value="{{ stack.name }}" required>
+                        <input type="text" class="form-control" id="stack_name" name="name" value="{{ stack.name }}"
+                            required>
                         <div class="form-text">This will be used as the Docker stack name during deployment.</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="stack_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="stack_description" name="description" rows="2">{{ stack.description }}</textarea>
+                        <textarea class="form-control" id="stack_description" name="description"
+                            rows="2">{{ stack.description }}</textarea>
                         <div class="form-text">Optional description for this stack.</div>
                     </div>
 
@@ -65,9 +68,9 @@
                                 </button>
                             </div>
                         </div>
-                        <textarea class="form-control" id="compose_content" name="compose_content" rows="20" 
-                                  style="font-family: 'Monaco', 'Consolas', 'Courier New', monospace; font-size: 0.9rem;" 
-                                  required>{{ stack.compose_content }}</textarea>
+                        <textarea class="form-control" id="compose_content" name="compose_content" rows="20"
+                            style="font-family: 'Monaco', 'Consolas', 'Courier New', monospace; font-size: 0.9rem;"
+                            required>{{ stack.compose_content }}</textarea>
                         <div class="form-text">
                             YAML format required. Make sure to use proper indentation (2 spaces).
                         </div>
@@ -92,7 +95,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -105,23 +108,24 @@
                 <dl class="row">
                     <dt class="col-sm-6">Status:</dt>
                     <dd class="col-sm-6">
-                        <span class="badge bg-{% if stack.status == 'deployed' %}success{% elif stack.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                        <span
+                            class="badge bg-{% if stack.status == 'deployed' %}success{% elif stack.status == 'failed' %}danger{% else %}secondary{% endif %}">
                             {{ stack.get_status_display }}
                         </span>
                     </dd>
-                    
+
                     <dt class="col-sm-6">Services:</dt>
                     <dd class="col-sm-6">{{ stack.services_count }}</dd>
-                    
+
                     <dt class="col-sm-6">Created:</dt>
                     <dd class="col-sm-6">{{ stack.created_at|date:"M d, Y" }}</dd>
-                    
+
                     <dt class="col-sm-6">Created by:</dt>
                     <dd class="col-sm-6">{{ stack.created_by.username }}</dd>
-                    
+
                     {% if stack.last_deployed %}
-                        <dt class="col-sm-6">Last deployed:</dt>
-                        <dd class="col-sm-6">{{ stack.last_deployed|date:"M d, Y H:i" }}</dd>
+                    <dt class="col-sm-6">Last deployed:</dt>
+                    <dd class="col-sm-6">{{ stack.last_deployed|date:"M d, Y H:i" }}</dd>
                     {% endif %}
                 </dl>
             </div>
@@ -157,7 +161,7 @@
                         Changes will not affect deployed services until redeployed
                     </li>
                 </ul>
-                
+
                 <div class="mt-3">
                     <button class="btn btn-outline-info btn-sm" onclick="showExampleCompose()">
                         <i class="bi bi-eye"></i>
@@ -260,30 +264,30 @@ volumes:
     function validateYaml() {
         const content = document.getElementById('compose_content').value;
         const validationDiv = document.getElementById('yaml-validation');
-        
+
         try {
             // Basic YAML validation - check for common issues
             const lines = content.split('\n');
             let hasVersion = false;
             let hasServices = false;
             let indentationIssues = [];
-            
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 if (line.trim().startsWith('version:')) hasVersion = true;
                 if (line.trim().startsWith('services:')) hasServices = true;
-                
+
                 // Check for tab characters
                 if (line.includes('\t')) {
                     indentationIssues.push(`Line ${i + 1}: Use spaces instead of tabs`);
                 }
             }
-            
+
             let messages = [];
             if (!hasVersion) messages.push('Consider adding a version field (e.g., version: "3.8")');
             if (!hasServices) messages.push('No services section found');
             messages = messages.concat(indentationIssues);
-            
+
             if (messages.length === 0) {
                 validationDiv.innerHTML = '<div class="alert alert-success alert-sm"><i class="bi bi-check-circle"></i> YAML looks good!</div>';
             } else {
@@ -293,30 +297,30 @@ volumes:
             validationDiv.innerHTML = '<div class="alert alert-danger alert-sm"><i class="bi bi-x-circle"></i> YAML validation error: ' + e.message + '</div>';
         }
     }
-    
+
     function formatYaml() {
         const textarea = document.getElementById('compose_content');
         let content = textarea.value;
-        
+
         // Basic YAML formatting - ensure consistent indentation
         const lines = content.split('\n');
         const formatted = [];
-        
+
         for (let line of lines) {
             // Convert tabs to spaces and normalize indentation
             line = line.replace(/\t/g, '  ');
             formatted.push(line);
         }
-        
+
         textarea.value = formatted.join('\n');
         showToast('YAML formatted', 'success');
     }
-    
+
     function showExampleCompose() {
         const modal = new bootstrap.Modal(document.getElementById('exampleComposeModal'));
         modal.show();
     }
-    
+
     function copyExample() {
         const exampleText = `version: '3.8'
 
@@ -369,24 +373,24 @@ networks:
 volumes:
   app_data:
   db_data:`;
-        
-        navigator.clipboard.writeText(exampleText).then(function() {
+
+        navigator.clipboard.writeText(exampleText).then(function () {
             showToast('Example copied to clipboard', 'success');
             bootstrap.Modal.getInstance(document.getElementById('exampleComposeModal')).hide();
         });
     }
-    
+
     // Auto-save draft (optional)
     let saveTimeout;
-    document.getElementById('compose_content').addEventListener('input', function() {
+    document.getElementById('compose_content').addEventListener('input', function () {
         clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(function() {
+        saveTimeout = setTimeout(function () {
             // Could implement auto-save to localStorage here
         }, 5000);
     });
-    
+
     // Validate on load
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         validateYaml();
     });
 </script>
